@@ -35,7 +35,7 @@ class Window(QMainWindow):
         self.mlogin.triggered.connect(self.menu_login)
         # кнопка Регистарция
         self.reg.setStatusTip('Войти')
-        self.re.triggered.connect(self.menu_login)
+        self.reg.triggered.connect(self.menu_reg)
 
 
 
@@ -52,14 +52,15 @@ class Window(QMainWindow):
         # изменение размеров окна в зависимости от параметров пользовательского мотитора
         user_height = QDesktopWidget().availableGeometry().height()
         user_width = QDesktopWidget().availableGeometry().width()
-        print(user_height,user_width)
         new_height= self.height()*user_height//my_height
         new_width=self.width() *user_width//my_width
         self.resize(new_width*2,new_height*2) # размеры половинчатые???
 
     def menu_login(self):
-
         wlogin = Login_window(self)
+        wlogin.exec_()
+    def menu_reg(self):
+        wlogin = Reg_window(self)
         wlogin.exec_()
 
 if __name__=='__main__':

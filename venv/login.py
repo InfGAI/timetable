@@ -25,7 +25,6 @@ class Login_window(QDialog):
         # изменение размеров окна в зависимости от параметров пользовательского мотитора
         user_height = QDesktopWidget().availableGeometry().height()
         user_width = QDesktopWidget().availableGeometry().width()
-        print(user_height,user_width)
         new_height= self.height()*user_height//my_height
         new_width=self.width() *user_width//my_width
         self.resize(new_width*2,new_height*2)
