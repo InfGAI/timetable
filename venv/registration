@@ -3,7 +3,7 @@ import pyqt5_tools
 from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget,QApplication,QDialog,QDesktopWidget
 
-class Login_window(QDialog):
+class Reg_window(QDialog):
     def __init__(self,parent=None):
         # поскольку окло логина может вызываться из родительского окна, обязательно добавить аргумент parent
         super(Login_window,self).__init__()

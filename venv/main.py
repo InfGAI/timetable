@@ -1,3 +1,9 @@
+import pyqt5_tools
+from PyQt5 import uic
+from PyQt5.QtWidgets import QWidget,QApplication,QPushButton,QMainWindow,QAction,QDesktopWidget
+from login import Login_window
+from registration import Reg_window
+#модификация для вывода информации об ошибке, а не просто исключении
 def log_uncaught_exceptions(ex_cls, ex, tb):
     text = '{}: {}:\n'.format(ex_cls.__name__, ex)
     import traceback
@@ -11,24 +17,29 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
 import sys
 
 sys.excepthook = log_uncaught_exceptions
-#модификация для вывода информации об ошибке, а не просто исключении
 
-import pyqt5_tools
-from PyQt5 import uic
-from PyQt5.QtWidgets import QWidget,QApplication,QPushButton,QMainWindow,QAction,QDesktopWidget
-from login import Login_window
+
 
 class Window(QMainWindow):
     def __init__(self):
         super(Window,self).__init__()
         uic.loadUi("main.ui",self)
         self.user_size(1920,1080) #подставляем разрешение рабочего экрана
-        self.center()
+        self.center() # размещение окна по центру
         #loginAction = QAction("login",self)
         #self.login.setShortcut('Ctrl+Q')
         #при создании из дизайнера, виджеты уже являются QAction
+
+        # кнопка Войти
         self.mlogin.setStatusTip('Войти')
         self.mlogin.triggered.connect(self.menu_login)
+        # кнопка Регистарция
+        self.reg.setStatusTip('Войти')
+        self.re.triggered.connect(self.menu_login)
+
+
+
+
 
     def center(self):
         # центрирование окна в зависимости от параметров пользовательского мотитора
@@ -44,7 +55,7 @@ class Window(QMainWindow):
         print(user_height,user_width)
         new_height= self.height()*user_height//my_height
         new_width=self.width() *user_width//my_width
-        self.resize(new_width*2,new_height*2)
+        self.resize(new_width*2,new_height*2) # размеры половинчатые???
 
     def menu_login(self):
 
