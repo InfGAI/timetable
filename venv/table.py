@@ -3,8 +3,6 @@ from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget,QApplication,QPushButton,QMainWindow,QAction,QDesktopWidget
 from login import Login_window
 from registration import Reg_window
-from table import Table
-
 #модификация для вывода информации об ошибке, а не просто исключении
 def log_uncaught_exceptions(ex_cls, ex, tb):
     text = '{}: {}:\n'.format(ex_cls.__name__, ex)
@@ -22,24 +20,12 @@ sys.excepthook = log_uncaught_exceptions
 
 
 
-class Window(QMainWindow):
-    def __init__(self):
-        super(Window,self).__init__()
-        uic.loadUi("main.ui",self)
+class Table(QMainWindow):
+    def __init__(self,parent=None):
+        super(Table,self).__init__()
+        uic.loadUi("table.ui",self)
         self.user_size(1920,1080) #подставляем разрешение рабочего экрана
         self.center() # размещение окна по центру
-        #loginAction = QAction("login",self)
-        #self.login.setShortcut('Ctrl+Q')
-        #при создании из дизайнера, виджеты уже являются QAction
-
-        # кнопка Войти
-        self.mlogin.setStatusTip('Войти')
-        self.mlogin.triggered.connect(self.menu_login)
-        # кнопка Регистарция
-        self.reg.setStatusTip('Войти')
-        self.reg.triggered.connect(self.menu_reg)
-        self.bview.clicked.connect(self.view)
-        self.bset.clicked.connect(self.set)
 
     def center(self):
         # центрирование окна в зависимости от параметров пользовательского мотитора
@@ -63,23 +49,9 @@ class Window(QMainWindow):
         wlogin = Reg_window(self)
         wlogin.exec_()
 
-    def view(self):
-        self.close()
-        self.wnd = Table(self)
-        self.wnd.show()
-        self.user='admin'
-
-
-    def set(self):
-        self.close()
-        self.wnd = Table(self)
-        self.wnd.show()
-        self.user = 'teacher'
-
-
 if __name__=='__main__':
     app=QApplication(sys.argv)
-    wnd=Window()
+    wnd=Table()
     wnd.show()
     sys.exit(app.exec())
 
