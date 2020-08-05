@@ -64,9 +64,10 @@ class Window(QMainWindow):
         wlogin.exec_()
 
     def view(self):
-        #self.close()
-        self.wnd = Table(self)
-        self.wnd.show()
+        wnd.hide()
+        self.child_wnd = Table(self)
+        self.child_wnd.show()
+
         self.user='admin'
 
 
@@ -81,6 +82,6 @@ if __name__=='__main__':
     app=QApplication(sys.argv)
     wnd=Window()
     wnd.show()
-    sys.exit(app.exec())
+    sys.exit(app.exec_())#нижнее подчеркивание ставится для совместимости со старыми версиями, где exec было зарезервированным словом
 
 

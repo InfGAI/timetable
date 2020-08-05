@@ -24,12 +24,15 @@ sys.excepthook = log_uncaught_exceptions
 class Table(QWidget):
     def __init__(self,parent=None):
         super(Table,self).__init__()
+
+        self.parrent = parent # так получаем сыылку на родительское окно для использования на кнопке назад
         uic.loadUi("table.ui",self)
         self.user_size(1920,1080) #подставляем разрешение рабочего экрана
         self.center() # размещение окна по центру
 
         self.bback.clicked.connect(self.back)
     def back(self):
+        self.parrent.show()  # показываем родительское окно
         self.close()
 
     def center(self):
