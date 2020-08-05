@@ -1,8 +1,9 @@
 import pyqt5_tools
-from PyQt5 import uic
+from PyQt5 import uic,QtCore
 from PyQt5.QtWidgets import QWidget,QApplication,QPushButton,QMainWindow,QAction,QDesktopWidget
 from login import Login_window
 from registration import Reg_window
+
 
 #модификация для вывода информации об ошибке, а не просто исключении
 def log_uncaught_exceptions(ex_cls, ex, tb):
@@ -22,6 +23,11 @@ sys.excepthook = log_uncaught_exceptions
 
 
 class Table(QWidget):
+    closeChildWnd = QtCore.pyqtSignal()
+    #важно!!!Following words and codes are in PyQt5 docs.
+# New signals should only be defined in sub-classes of QObject.
+# They must be part of the class definition and cannot be dynamically added as class attributes
+    # after the class has been defined.
     def __init__(self,parent=None):
         super(Table,self).__init__()
         uic.loadUi("table.ui",self)
@@ -31,6 +37,9 @@ class Table(QWidget):
         self.bback.clicked.connect(self.back)
     def back(self):
         self.close()
+
+        self.closeChildWnd.emit()
+
 
     def center(self):
         # центрирование окна в зависимости от параметров пользовательского мотитора

@@ -31,7 +31,7 @@ class Window(QMainWindow):
         #loginAction = QAction("login",self)
         #self.login.setShortcut('Ctrl+Q')
         #при создании из дизайнера, виджеты уже являются QAction
-
+        self.child_wnd=None
         # кнопка Войти
         self.mlogin.setStatusTip('Войти')
         self.mlogin.triggered.connect(self.menu_login)
@@ -64,10 +64,15 @@ class Window(QMainWindow):
         wlogin.exec_()
 
     def view(self):
-        #self.close()
-        self.wnd = Table(self)
-        self.wnd.show()
+        #self.hide()
+
+        self.child_wnd = Table(self)
+        self.child_wnd.show()
+        self.child_wnd.closeChildWnd.connect(self.show)
+
+        self.hide()
         self.user='admin'
+        # соединяем сигнал CloseChildWnd от дочернего окна с методом self.wnd.show
 
 
     def set(self):
