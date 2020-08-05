@@ -64,7 +64,7 @@ class Window(QMainWindow):
         wlogin.exec_()
 
     def view(self):
-        self.close()
+        #self.close()
         self.wnd = Table(self)
         self.wnd.show()
         self.user='admin'

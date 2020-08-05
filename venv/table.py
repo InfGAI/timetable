@@ -3,6 +3,7 @@ from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget,QApplication,QPushButton,QMainWindow,QAction,QDesktopWidget
 from login import Login_window
 from registration import Reg_window
+
 #модификация для вывода информации об ошибке, а не просто исключении
 def log_uncaught_exceptions(ex_cls, ex, tb):
     text = '{}: {}:\n'.format(ex_cls.__name__, ex)
@@ -20,12 +21,16 @@ sys.excepthook = log_uncaught_exceptions
 
 
 
-class Table(QMainWindow):
+class Table(QWidget):
     def __init__(self,parent=None):
         super(Table,self).__init__()
         uic.loadUi("table.ui",self)
         self.user_size(1920,1080) #подставляем разрешение рабочего экрана
         self.center() # размещение окна по центру
+
+        self.bback.clicked.connect(self.back)
+    def back(self):
+        self.close()
 
     def center(self):
         # центрирование окна в зависимости от параметров пользовательского мотитора
