@@ -1,7 +1,7 @@
 import sys
 import pyqt5_tools
 from PyQt5 import uic,QtCore
-from PyQt5.QtWidgets import QWidget,QApplication,QDialog,QDesktopWidget
+from PyQt5.QtWidgets import QWidget,QApplication,QDialog,QDesktopWidget,QMessageBox
 import sqlite3
 
 class Login_window(QDialog):
@@ -26,6 +26,7 @@ class Login_window(QDialog):
         for record in result:
             print(record)
             print((self.luser.text(),self.lpassword.text()))
+            true_login=False
             if record[0]==self.luser.text():
                 if record[1]==self.lpassword.text():
                     print('ok')
@@ -38,10 +39,13 @@ class Login_window(QDialog):
                     else:
                         self.teacherSignal.emit()
                 else:
-                    print('1111')
+                    QMessageBox.about(self, "Ошибка входа", "Неверный пароль")
+                true_login = True
                 break
-            else:
-                print('0000')
+
+        if not true_login:
+            QMessageBox.about(self, "Ошибка входа", "Неверное имя пользователя")
+
         con.close()
     def center(self):
         qr = self.frameGeometry()
