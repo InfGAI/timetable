@@ -59,7 +59,7 @@ class Window(QMainWindow):
     def menu_login(self):
         self.wlogin = Login_window(self)
         self.wlogin.show()
-        self.wlogin.adminSignal.connect(lambda: print('admin'))
+        self.wlogin.adminSignal.connect(self.view)
         self.wlogin.teacherSignal.connect(lambda: print('teacher'))
     def menu_reg(self):
         wlogin = Reg_window(self)
@@ -68,7 +68,7 @@ class Window(QMainWindow):
     def view(self):
         self.hide()
         self.child_wnd = Table(self)
-        self.child_wnd.adminSignal.connect(lambda x:print(90000000000000))
+
         self.child_wnd.show()
         self.user='admin'
 
