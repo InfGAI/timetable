@@ -29,8 +29,24 @@ class Table(QWidget):
         uic.loadUi("table.ui",self)
         self.user_size(1920,1080) #подставляем разрешение рабочего экрана
         self.center() # размещение окна по центру
+       # self.table.cellClicked.connect(self.on_click) #клик по ячейке
+        self.bback.clicked.connect(self.back)# Кнопка НАЗАД
+        self.bsave.clicked.connect(self.save)  # Кнопка НАЗАД
 
-        self.bback.clicked.connect(self.back)
+        self.bcancel.clicked.connect(self.cancel)  # Кнопка НАЗАД
+    def save(self):
+
+        for row in range(self.tableWidget.rowCount()):
+            for column in range(self.tableWidget.columnCount()):
+                if self.tableWidget.item(row, column):
+                    print(self.tableWidget.item(row, column).text(),end=' ')
+            print()
+    def cancel(self):
+        for row in range(self.tableWidget.rowCount()):
+            for column in range(self.tableWidget.columnCount()):
+                if self.tableWidget.item(row, column):
+                    self.tableWidget.setItem(row, column,None)
+
     def back(self):
         self.parrent.show()  # показываем родительское окно
         self.close()
