@@ -57,19 +57,17 @@ class Window(QMainWindow):
         self.resize(new_width*2,new_height*2) # размеры половинчатые???
 
     def menu_login(self):
-        self.wlogin = Login_window(self)
-        self.wlogin.show()
-        self.wlogin.adminSignal.connect(self.view)
-        self.wlogin.teacherSignal.connect(lambda: print('teacher'))
+        wlogin = Login_window(self)
+        wlogin.exec_()
     def menu_reg(self):
         wlogin = Reg_window(self)
         wlogin.exec_()
 
     def view(self):
-        self.hide()
+        wnd.hide()
         self.child_wnd = Table(self)
-
         self.child_wnd.show()
+
         self.user='admin'
 
 
@@ -84,6 +82,6 @@ if __name__=='__main__':
     app=QApplication(sys.argv)
     wnd=Window()
     wnd.show()
-    sys.exit(app.exec())
+    sys.exit(app.exec_())#нижнее подчеркивание ставится для совместимости со старыми версиями, где exec было зарезервированным словом
 
 
