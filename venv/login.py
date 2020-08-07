@@ -40,11 +40,13 @@ class Login_window(QDialog):
                         self.teacherSignal.emit()
                 else:
                     QMessageBox.about(self, "Ошибка входа", "Неверный пароль")
+                    self.show()# в стандартном accepted окно закрывается, открываем заново
                 true_login = True
                 break
 
         if not true_login:
             QMessageBox.about(self, "Ошибка входа", "Неверное имя пользователя")
+            self.show()# в стандартном accepted окно закрывается, открываем заново
 
         con.close()
     def center(self):
