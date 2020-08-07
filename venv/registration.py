@@ -2,6 +2,7 @@ import sys
 import pyqt5_tools
 from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget,QApplication,QDialog,QDesktopWidget
+import sqlite3
 
 class Reg_window(QDialog):
     def __init__(self,parent=None):
@@ -14,7 +15,13 @@ class Reg_window(QDialog):
         # self.login_button.rejected.connect(sys.exit) exit закрывает родительское окно???
         self.reg_button.rejected.connect(self.exec)
     def on_click(self):
-        print('hhhhhh')
+        con = sqlite3.connect('db1.db')
+        cur = con.cursor()
+        sql = '''INSERT INTO user(login,password) VALUES (?, ?)'''
+        cur.execute(sql, (self.luser.text(),self.lpassword.text())).fetchall()
+        con.commit() #если внесены изменения не просто close
+        self.close()
+
     def center(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
