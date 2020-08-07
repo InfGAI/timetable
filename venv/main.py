@@ -57,16 +57,19 @@ class Window(QMainWindow):
         self.resize(new_width*2,new_height*2) # размеры половинчатые???
 
     def menu_login(self):
-        wlogin = Login_window(self)
-        wlogin.exec_()
+        self.wlogin = Login_window(self)
+        self.wlogin.show()
+        self.wlogin.adminSignal.connect(self.view)
+        self.wlogin.teacherSignal.connect(lambda: print('teacher'))
     def menu_reg(self):
         wlogin = Reg_window(self)
         wlogin.exec_()
 
     def view(self):
-        self.close()
-        self.wnd = Table(self)
-        self.wnd.show()
+        self.hide()
+        self.child_wnd = Table(self)
+
+        self.child_wnd.show()
         self.user='admin'
 
 
