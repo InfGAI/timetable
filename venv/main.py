@@ -39,7 +39,7 @@ class Window(QMainWindow):
         # кнопка Регистарция
         self.reg.setStatusTip('Войти')
         self.reg.triggered.connect(self.menu_reg)
-        self.bview.clicked.connect(self.view)
+        self.bview.clicked.connect(self.teacher_view)
         self.bset.clicked.connect(self.set)
 
     def center(self):
@@ -60,20 +60,24 @@ class Window(QMainWindow):
     def menu_login(self):
         self.wlogin = Login_window(self)
         self.wlogin.show()
-        self.wlogin.adminSignal[str].connect(self.view)
-        self.wlogin.teacherSignal[str].connect(lambda x: print('teacher',x))
+        self.wlogin.adminSignal[str].connect(self.admin_view)
+        self.wlogin.teacherSignal[str].connect(self.teacher_view)
     def menu_reg(self):
         wlogin = Reg_window(self)
         wlogin.exec_()
 
-    def view(self,n):
+    def teacher_view(self,n):
         self.hide()
         self.userRight = 'teacher'
         self.userName = n
-        print(999999,self.userName)
         self.child_wnd = Table(self.userName,self)
         self.child_wnd.show()
-        print(self.userName)
+    def admin_view(self,n):
+        self.hide()
+        self.userRight = 'admin'
+        self.userName = n
+        self.child_wnd = Table('admin',self)
+        self.child_wnd.show()
 
 
 

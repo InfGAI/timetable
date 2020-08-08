@@ -51,7 +51,7 @@ class Table(QWidget):
             for column in range(self.tableWidget.columnCount()):
                 if self.tableWidget.item(row, column):
                     self.tableWidget.setItem(row, column, None)
-        self.fill_table(self.UserName)
+        self.fill_table(self.userName)
 
     def fill_table(self,n):
         con = sqlite3.connect('db1.db')
@@ -63,8 +63,11 @@ class Table(QWidget):
             column, row = map(int, lesson[0].split())
             print(column, row)
             print(lesson[1], n)
-            if lesson[1]==n:
+            if n=='admin':
                 self.tableWidget.setItem(row, column, QTableWidgetItem(lesson[1]))
+            else:
+                if lesson[1]==n:
+                    self.tableWidget.setItem(row, column, QTableWidgetItem(lesson[1]))
 
         con.close()
     def back(self):
