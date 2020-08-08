@@ -39,12 +39,24 @@ class Table(QWidget):
         self.fill_table(Uname)
 
     def save(self):
+        con = sqlite3.connect('db1.db')
+        cur = con.cursor()
         for row in range(self.tableWidget.rowCount()):
             for column in range(self.tableWidget.columnCount()):
-                if self.tableWidget.item(row, column):
-                    "INSERT INTO thirst (tovar, type) VALUES ('Potato', 1)"
-                    print(self.tableWidget.item(row, column).text(), end=' ')
-            print()
+                if self.tableWidget.item(row, column): # если ячейка не пуста
+                    teacher=self.userName # ищем id
+                    student=self.tableWidget.item(row, column).text()
+                    uid = "SELECT id from user WHERE login='{}'".format(str(teacher))
+                    tid=cur.execute(uid).fetchall()[0][0]
+                    print(tid)
+                    teacher_timetable=cur.execute("SELECT id,lesson from timetable WHERE id='{}'".format(str(tid))).fetchall()
+                    lesson=(tid,' '.join((str(column),str(row))))
+                    print(lesson)
+                    print(teacher_timetable)
+                    if  lesson not in teacher_timetable:
+                        sql= '''INSERT INTO timetable (id, lesson) VALUES (?, ?)''' # по id записываем уроки в расписание
+                        cur.execute(sql, (tid, ' '.join((str(column),str(row))))).fetchall()
+        con.commit()
 
     def cancel(self):
         for row in range(self.tableWidget.rowCount()):
