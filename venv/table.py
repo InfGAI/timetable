@@ -1,8 +1,9 @@
 import pyqt5_tools
 from PyQt5 import uic
-from PyQt5.QtWidgets import QWidget,QApplication,QPushButton,QMainWindow,QAction,QDesktopWidget
+from PyQt5.QtWidgets import QWidget,QApplication,QPushButton,QMainWindow,QAction,QDesktopWidget,QTableWidgetItem
 from login import Login_window
 from registration import Reg_window
+import sqlite3
 
 #модификация для вывода информации об ошибке, а не просто исключении
 def log_uncaught_exceptions(ex_cls, ex, tb):
@@ -22,31 +23,48 @@ sys.excepthook = log_uncaught_exceptions
 
 
 class Table(QWidget):
-    def __init__(self,parent=None):
-        super(Table,self).__init__()
+    def __init__(self, parent=None):
+        super(Table, self).__init__()
 
-        self.parrent = parent # так получаем сыылку на родительское окно для использования на кнопке назад
-        uic.loadUi("table.ui",self)
-        self.user_size(1920,1080) #подставляем разрешение рабочего экрана
-        self.center() # размещение окна по центру
-       # self.table.cellClicked.connect(self.on_click) #клик по ячейке
-        self.bback.clicked.connect(self.back)# Кнопка НАЗАД
+        self.parrent = parent  # так получаем сыылку на родительское окно для использования на кнопке назад
+        uic.loadUi("table.ui", self)
+        self.user_size(1920, 1080)  # подставляем разрешение рабочего экрана
+        self.center()  # размещение окна по центру
+        # self.table.cellClicked.connect(self.on_click) #клик по ячейке
+        self.bback.clicked.connect(self.back)  # Кнопка НАЗАД
         self.bsave.clicked.connect(self.save)  # Кнопка НАЗАД
 
         self.bcancel.clicked.connect(self.cancel)  # Кнопка НАЗАД
-    def save(self):
+        # заполнение таблицы из бд
+        self.fill_table()
 
+    def save(self):
         for row in range(self.tableWidget.rowCount()):
             for column in range(self.tableWidget.columnCount()):
                 if self.tableWidget.item(row, column):
-                    print(self.tableWidget.item(row, column).text(),end=' ')
+                    "INSERT INTO thirst (tovar, type) VALUES ('Potato', 1)"
+                    print(self.tableWidget.item(row, column).text(), end=' ')
             print()
+
     def cancel(self):
         for row in range(self.tableWidget.rowCount()):
             for column in range(self.tableWidget.columnCount()):
                 if self.tableWidget.item(row, column):
-                    self.tableWidget.setItem(row, column,None)
+                    self.tableWidget.setItem(row, column, None)
+        self.fill_table()
 
+    def fill_table(self):
+        con = sqlite3.connect('db1.db')
+        cur = con.cursor()
+        result = cur.execute(
+            'SELECT timetable.lesson,user.name FROM timetable,user WHERE timetable.id=user.id  ').fetchall()
+        print(result)
+        for lesson in result:
+            column, row = map(int, lesson[0].split())
+            print(column, row)
+            self.tableWidget.setItem(row, column, QTableWidgetItem(lesson[1]))
+
+        con.close()
     def back(self):
         self.parrent.show()  # показываем родительское окно
         self.close()
