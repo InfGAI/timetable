@@ -59,25 +59,29 @@ class Window(QMainWindow):
     def menu_login(self):
         self.wlogin = Login_window(self)
         self.wlogin.show()
-        self.wlogin.adminSignal.connect(self.view)
-        self.wlogin.teacherSignal.connect(lambda: print('teacher'))
+        self.wlogin.adminSignal[str].connect(self.view)
+        self.wlogin.teacherSignal[str].connect(lambda x: print('teacher',x))
     def menu_reg(self):
         wlogin = Reg_window(self)
         wlogin.exec_()
 
-    def view(self):
+    def view(self,name):
         self.hide()
+        self.userRight = 'teacher'
+        self.userName = name
         self.child_wnd = Table(self)
-
         self.child_wnd.show()
-        self.user='admin'
+        print(self.userName)
 
 
-    def set(self):
+
+
+    def set(self,x):
         self.close()
         self.wnd = Table(self)
         self.wnd.show()
-        self.user = 'teacher'
+        self.userRight = 'admin'
+        self.userName=x
 
 
 if __name__=='__main__':

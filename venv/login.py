@@ -5,8 +5,8 @@ from PyQt5.QtWidgets import QWidget,QApplication,QDialog,QDesktopWidget,QMessage
 import sqlite3
 
 class Login_window(QDialog):
-    adminSignal = QtCore.pyqtSignal()
-    teacherSignal = QtCore.pyqtSignal()
+    adminSignal = QtCore.pyqtSignal(str)
+    teacherSignal = QtCore.pyqtSignal(str)
     def __init__(self,parent=None):
         # поскольку окло логина может вызываться из родительского окна, обязательно добавить аргумент parent
         super(Login_window,self).__init__()
@@ -35,9 +35,9 @@ class Login_window(QDialog):
                     print(psw)
                     dic=dict(psw)
                     if dic[self.luser.text()]==1:#является админом
-                        self.adminSignal.emit()
+                        self.adminSignal.emit(self.luser.text())
                     else:
-                        self.teacherSignal.emit()
+                        self.teacherSignal.emit(self.luser.text())
                 else:
                     QMessageBox.about(self, "Ошибка входа", "Неверный пароль")
                     self.show()# в стандартном accepted окно закрывается, открываем заново
