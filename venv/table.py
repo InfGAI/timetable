@@ -23,7 +23,7 @@ sys.excepthook = log_uncaught_exceptions
 
 
 class Table(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, Uname,parent=None):
         super(Table, self).__init__()
 
         self.parrent = parent  # так получаем сыылку на родительское окно для использования на кнопке назад
@@ -33,10 +33,10 @@ class Table(QWidget):
         # self.table.cellClicked.connect(self.on_click) #клик по ячейке
         self.bback.clicked.connect(self.back)  # Кнопка НАЗАД
         self.bsave.clicked.connect(self.save)  # Кнопка НАЗАД
-
+        self.userName=Uname
         self.bcancel.clicked.connect(self.cancel)  # Кнопка НАЗАД
         # заполнение таблицы из бд
-        self.fill_table()
+        self.fill_table(Uname)
 
     def save(self):
         for row in range(self.tableWidget.rowCount()):
@@ -51,18 +51,20 @@ class Table(QWidget):
             for column in range(self.tableWidget.columnCount()):
                 if self.tableWidget.item(row, column):
                     self.tableWidget.setItem(row, column, None)
-        self.fill_table()
+        self.fill_table(self.UserName)
 
-    def fill_table(self):
+    def fill_table(self,n):
         con = sqlite3.connect('db1.db')
         cur = con.cursor()
         result = cur.execute(
-            'SELECT timetable.lesson,user.name FROM timetable,user WHERE timetable.id=user.id  ').fetchall()
+            'SELECT timetable.lesson,user.login FROM timetable,user WHERE timetable.id=user.id  ').fetchall()
         print(result)
         for lesson in result:
             column, row = map(int, lesson[0].split())
             print(column, row)
-            self.tableWidget.setItem(row, column, QTableWidgetItem(lesson[1]))
+            print(lesson[1], n)
+            if lesson[1]==n:
+                self.tableWidget.setItem(row, column, QTableWidgetItem(lesson[1]))
 
         con.close()
     def back(self):

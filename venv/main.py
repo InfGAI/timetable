@@ -31,7 +31,8 @@ class Window(QMainWindow):
         #loginAction = QAction("login",self)
         #self.login.setShortcut('Ctrl+Q')
         #при создании из дизайнера, виджеты уже являются QAction
-
+        self.userRight = None
+        self.userName = None
         # кнопка Войти
         self.mlogin.setStatusTip('Войти')
         self.mlogin.triggered.connect(self.menu_login)
@@ -65,23 +66,25 @@ class Window(QMainWindow):
         wlogin = Reg_window(self)
         wlogin.exec_()
 
-    def view(self,name):
+    def view(self,n):
         self.hide()
         self.userRight = 'teacher'
-        self.userName = name
-        self.child_wnd = Table(self)
+        self.userName = n
+        print(999999,self.userName)
+        self.child_wnd = Table(self.userName,self)
         self.child_wnd.show()
         print(self.userName)
 
 
 
 
-    def set(self,x):
-        self.close()
-        self.wnd = Table(self)
-        self.wnd.show()
+    def set(self,n):
         self.userRight = 'admin'
-        self.userName=x
+        self.userName = n
+        self.close()
+        self.wnd = Table(self,n)
+        self.wnd.show()
+
 
 
 if __name__=='__main__':
