@@ -1,9 +1,10 @@
-import pyqt5_tools
+#import pyqt5_tools
 from PyQt5 import uic
-from PyQt5.QtWidgets import QWidget,QApplication,QPushButton,QMainWindow,QAction,QDesktopWidget,QTableWidgetItem
+from PyQt5.QtWidgets import QWidget,QApplication,QMessageBox,QHeaderView,QAction,QDesktopWidget,QTableWidgetItem
 from login import Login_window
-from registration import Reg_window
+
 import sqlite3
+
 
 #модификация для вывода информации об ошибке, а не просто исключении
 def log_uncaught_exceptions(ex_cls, ex, tb):
@@ -12,7 +13,7 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
     text += ''.join(traceback.format_tb(tb))
 
     print(text)
-    QtWidget.QMessageBox.critical(None, 'Error', text)
+    QMessageBox.critical(None, 'Error', text)
     quit()
 
 
@@ -23,10 +24,10 @@ sys.excepthook = log_uncaught_exceptions
 
 
 class Table(QWidget):
-    def __init__(self, Uname,parent=None):
+    def __init__(self, Uname=None,parent=None):
         super(Table, self).__init__()
 
-        self.parrent = parent  # так получаем сыылку на родительское окно для использования на кнопке назад
+        self.par = parent  # так получаем сыылку на родительское окно для использования на кнопке назад
         uic.loadUi("table.ui", self)
         self.user_size(1920, 1080)  # подставляем разрешение рабочего экрана
         self.center()  # размещение окна по центру
@@ -34,56 +35,124 @@ class Table(QWidget):
         self.bback.clicked.connect(self.back)  # Кнопка НАЗАД
         self.bsave.clicked.connect(self.save)  # Кнопка НАЗАД
         self.userName=Uname
-        self.bcancel.clicked.connect(self.cancel)  # Кнопка НАЗАД
-        # заполнение таблицы из бд
-        self.fill_table(Uname)
-
-    def save(self):
         con = sqlite3.connect('db1.db')
         cur = con.cursor()
-        for row in range(self.tableWidget.rowCount()):
-            for column in range(self.tableWidget.columnCount()):
-                if self.tableWidget.item(row, column): # если ячейка не пуста
-                    teacher=self.userName # ищем id
-                    student=self.tableWidget.item(row, column).text()
-                    uid = "SELECT id from user WHERE login='{}'".format(str(teacher))
-                    tid=cur.execute(uid).fetchall()[0][0]
-                    print(tid)
-                    teacher_timetable=cur.execute("SELECT id,lesson from timetable WHERE id='{}'".format(str(tid))).fetchall()
-                    lesson=(tid,' '.join((str(column),str(row))))
-                    print(lesson)
-                    print(teacher_timetable)
-                    if  lesson not in teacher_timetable:
-                        sql= '''INSERT INTO timetable (id, lesson) VALUES (?, ?)''' # по id записываем уроки в расписание
-                        cur.execute(sql, (tid, ' '.join((str(column),str(row))))).fetchall()
-        con.commit()
+        self.userRight = self.par.userRight
+        self.lbl_user.setText(Uname)
+        self.bcancel.clicked.connect(self.cancel)  # Кнопка ОТМЕНА
+        # заполнение таблицы из бд
+        self.fill_table()
+        # растягиваем таблицу на все пространство
+        self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.tableWidget.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+
+    def save(self):
+        if self.userRight == 'teacher':
+            con = sqlite3.connect('db1.db')
+            cur = con.cursor()
+            teacher = self.userName
+            uid = "SELECT id from user WHERE login='{}'".format(str(teacher))
+            tid = cur.execute(uid).fetchall()[0][0]
+            id = 'WHERE id =' + str(tid)
+            sql = '''SELECT timetable.lesson,user.login,student.surname FROM timetable,user,student WHERE 
+                                                    timetable.teacher_id=user.id AND student.id=timetable.student_id'''
+            all_lessons=cur.execute(sql).fetchall()
+            #создаем словарь, где ключ урок, а содержимое - список кортежей учитель-ученик
+            dic_lesson={}
+            for item in all_lessons:
+                lesson,teacher,student=item
+                if lesson in dic_lesson:
+                    dic_lesson[lesson].append((teacher,student))
+                else:
+                    dic_lesson[lesson]=[(teacher, student)]
+            print(dic_lesson)
+            for row in range(self.tableWidget.rowCount()):
+                for column in range(self.tableWidget.columnCount()):
+                    lesson=str(row)+' '+str(column)
+                    if self.tableWidget.item(row, column):
+                        if lesson not in dic_lesson:
+                            record=True
+                        else:
+                            #ceil='\n'.join([x[0]+' '+x[1] for x in dic_lesson[lesson]])
+                            #у учителя только один ученик на уроке
+                            if dic_lesson[lesson][0][1]!=self.tableWidget.item(row, column).text():
+                                record=True
+                            else:
+                                record=False
+                        if record:
+                            student = self.tableWidget.item(row, column).text()
+                            sql = "SELECT id from student WHERE surname='{}'".format(str(student))
+                            sid=cur.execute(sql).fetchall()
+                            if sid:
+                                sid = sid[0][0]
+                            else:
+                                sql = 'SELECT MAX(id) FROM student'
+                                sid = cur.execute(sql).fetchall()[0][0]+1
+                                sql = '''INSERT INTO student(id,surname) VALUES (?, ?)'''  # по id записываем уроки в расписание
+                                cur.execute(sql, (sid, student))
+                            print(tid, lesson,sid)
+
+
+                            sql = '''INSERT INTO timetable(teacher_id, lesson,student_id) VALUES (?, ?,?)'''  # по id записываем уроки в расписание
+                            cur.execute(sql, (tid, lesson,sid))
+                            print(student,lesson,teacher)
+
+
+
+
+            con.commit()
+            print('записано')
+        else:
+            login_error = QMessageBox.information(self, 'Ошибка авторизации',
+                                                  "Для внесения изменений авторизуйтесь, пожалуйста.")
+            if login_error==QMessageBox.Ok:
+                self.menu_login()
+
+
+ #   def change(self):
+
+
 
     def cancel(self):
         for row in range(self.tableWidget.rowCount()):
             for column in range(self.tableWidget.columnCount()):
                 if self.tableWidget.item(row, column):
                     self.tableWidget.setItem(row, column, None)
-        self.fill_table(self.userName)
+        self.fill_table()
 
-    def fill_table(self,n):
+    def fill_table(self):
         con = sqlite3.connect('db1.db')
         cur = con.cursor()
-        result = cur.execute(
-            'SELECT timetable.lesson,user.login FROM timetable,user WHERE timetable.id=user.id  ').fetchall()
-        print(result)
-        for lesson in result:
-            column, row = map(int, lesson[0].split())
-            print(column, row)
-            print(lesson[1], n)
-            if n=='admin':
-                self.tableWidget.setItem(row, column, QTableWidgetItem(lesson[1]))
-            else:
-                if lesson[1]==n:
-                    self.tableWidget.setItem(row, column, QTableWidgetItem(lesson[1]))
+        sql = '''SELECT timetable.lesson FROM timetable'''
+        result = cur.execute(sql).fetchall()
+        if self.userRight == 'admin' or self.userRight == None:
+            sql = '''SELECT DISTINCT timetable.lesson FROM timetable''' # Выбираем все существующие уроки в расписании
+        else:
+            sql = '''SELECT DISTINCT timetable.lesson FROM timetable,user WHERE 
+                    timetable.teacher_id=user.id AND user.login="{}"'''.format(self.userName) # Выбираем все существующие уроки данного учителя в расписании
 
+        result=cur.execute(sql).fetchall()
+        for item in result:
+            row,column=map(int,item[0].split())
+            if self.userRight == 'admin' or self.userRight == None:
+                sql= '''SELECT user.name, student.surname FROM timetable,user,student WHERE
+                        timetable.teacher_id=user.id AND student.id=timetable.student_id AND timetable.lesson="{}"'''.format(item[0])
+                self.bcancel.hide()
+                self.bsave.hide()
+                self.resize(self.width()*1.03,self.height()*1.02)
+                self.center()
+
+            else:
+                sql = '''SELECT student.surname FROM timetable,user,student WHERE
+                                        timetable.teacher_id=user.id AND student.id=timetable.student_id AND timetable.lesson="{}" AND user.login="{}"'''.format(item[0],self.userName)
+
+            day = '\n'.join([' '.join(list(item)) for item in cur.execute(sql).fetchall()])
+            print(day)
+            self.tableWidget.setItem(row,column, QTableWidgetItem(day))
         con.close()
+
     def back(self):
-        self.parrent.show()  # показываем родительское окно
+        self.par.show()  # показываем родительское окно
         self.close()
 
     def center(self):
@@ -102,11 +171,10 @@ class Table(QWidget):
         self.resize(new_width*2,new_height*2) # размеры половинчатые???
 
     def menu_login(self):
-        wlogin = Login_window(self)
-        wlogin.exec_()
-    def menu_reg(self):
-        wlogin = Reg_window(self)
-        wlogin.exec_()
+        self.wlogin = Login_window(self)
+        self.wlogin.show()
+
+
 
 if __name__=='__main__':
     app=QApplication(sys.argv)

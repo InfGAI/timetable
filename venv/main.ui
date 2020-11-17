@@ -6,66 +6,75 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>458</width>
-    <height>329</height>
+    <width>465</width>
+    <height>285</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>MainWindow</string>
+   <string>Расписание 1.0</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <widget class="QPushButton" name="bview">
-    <property name="geometry">
-     <rect>
-      <x>50</x>
-      <y>50</y>
-      <width>371</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Просмотр расписания</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>30</x>
-      <y>40</y>
-      <width>141</width>
-      <height>16</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>Arial</family>
-      <pointsize>18</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="bset">
-    <property name="geometry">
-     <rect>
-      <x>50</x>
-      <y>150</y>
-      <width>371</width>
-      <height>41</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Задание расписания</string>
-    </property>
-   </widget>
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="1">
+     <widget class="QPushButton" name="bset">
+      <property name="toolTip">
+       <string>&lt;html&gt;&lt;head/&gt;&lt;body&gt;&lt;p&gt;Для изменения расписания авторизайтесь, пожалуйста.&lt;/p&gt;&lt;/body&gt;&lt;/html&gt;</string>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">font: 75 20pt &quot;Verdana&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Задание расписания</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="0" column="1">
+     <widget class="QPushButton" name="bview">
+      <property name="styleSheet">
+       <string notr="true">font: 75 20pt &quot;Verdana&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Просмотр расписания</string>
+      </property>
+      <property name="default">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <spacer name="horizontalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>458</width>
+     <width>465</width>
      <height>18</height>
     </rect>
    </property>
@@ -75,6 +84,7 @@
     </property>
     <addaction name="mlogin"/>
     <addaction name="reg"/>
+    <addaction name="mexit"/>
    </widget>
    <widget class="QMenu" name="help">
     <property name="title">
@@ -99,6 +109,11 @@
   <action name="reg">
    <property name="text">
     <string>Регистрация</string>
+   </property>
+  </action>
+  <action name="mexit">
+   <property name="text">
+    <string>Выход</string>
    </property>
   </action>
  </widget>

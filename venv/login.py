@@ -1,5 +1,5 @@
 import sys
-import pyqt5_tools
+#import pyqt5_tools
 from PyQt5 import uic,QtCore
 from PyQt5.QtWidgets import QWidget,QApplication,QDialog,QDesktopWidget,QMessageBox
 import sqlite3
@@ -13,42 +13,54 @@ class Login_window(QDialog):
         uic.loadUi("login.ui",self)
         self.user_size(1920,1080)
         self.center()
-
+        self.par=parent
         self.login_button.accepted.connect(self.on_click)
         # self.login_button.rejected.connect(sys.exit) exit закрывает родительское окно???
         self.login_button.rejected.connect(self.exec)
+    def stupid_test(self,name): # проверка на дурака
+        return name.isalpha()
+
     def on_click(self):
-        con = sqlite3.connect('db1.db')
-        cur = con.cursor()
-        result = cur.execute(
-            'SELECT login, password FROM user').fetchall()
-        print(result)
-        for record in result:
-            print(record)
-            print((self.luser.text(),self.lpassword.text()))
-            true_login=False
-            if record[0]==self.luser.text():
-                if record[1]==self.lpassword.text():
-                    print('ok')
-                    psw = cur.execute(
-                        'SELECT user.login,rights.admin FROM user,rights WHERE user.id=rights.id').fetchall()
-                    print(psw)
-                    dic=dict(psw)
-                    if dic[self.luser.text()]==1:#является админом
-                        self.adminSignal.emit(self.luser.text())
+        if self.stupid_test(self.luser.text()):
+            con = sqlite3.connect('db1.db')
+            cur = con.cursor()
+            result = cur.execute(
+                'SELECT login, password FROM user').fetchall()
+            print(result)
+            for record in result:
+                print(record)
+                print((self.luser.text(),self.lpassword.text()))
+                true_login=False
+                if str(record[0])==self.luser.text():
+                    if str(record[1])==self.lpassword.text():
+                        print('ok')
+                        psw = cur.execute(
+                            'SELECT user.login,rights.admin FROM user,rights WHERE user.id=rights.id').fetchall()
+                        print(psw)
+                        dic=dict(psw)
+                        if dic[str(self.luser.text())]==1:#является админом
+                            self.par.userRight = 'admin'
+                            self.par.userName = self.luser.text()
+                            self.adminSignal.emit(self.luser.text())
+                        else:
+                            self.par.userRight = 'teacher'
+                            self.par.userName = self.luser.text()
+                            self.teacherSignal.emit(self.luser.text())
+
                     else:
-                        self.teacherSignal.emit(self.luser.text())
-                else:
-                    QMessageBox.about(self, "Ошибка входа", "Неверный пароль")
-                    self.show()# в стандартном accepted окно закрывается, открываем заново
-                true_login = True
-                break
+                        QMessageBox.about(self, "Ошибка входа", "Неверный пароль")
+                        self.show()# в стандартном accepted окно закрывается, открываем заново
+                    true_login = True
+                    break
 
-        if not true_login:
-            QMessageBox.about(self, "Ошибка входа", "Неверное имя пользователя")
-            self.show()# в стандартном accepted окно закрывается, открываем заново
+            con.close()
+            if not true_login:
+                QMessageBox.about(self, "Ошибка входа", "Неверное имя пользователя")
+                self.show()# в стандартном accepted окно закрывается, открываем заново
 
-        con.close()
+        else:
+            QMessageBox.about(self, "Ошибка входа", "Логин содержит только символы")
+
     def center(self):
         qr = self.frameGeometry()
         cp = QDesktopWidget().availableGeometry().center()
