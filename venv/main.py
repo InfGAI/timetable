@@ -19,7 +19,7 @@ def log_uncaught_exceptions(ex_cls, ex, tb):
 
     text += ''.join(traceback.format_tb(tb))
 
-    print(text)
+
     QMessageBox.critical(None, 'Error', text)
     quit()
 

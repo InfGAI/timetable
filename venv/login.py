@@ -26,17 +26,16 @@ class Login_window(QDialog):
             cur = con.cursor()
             result = cur.execute(
                 'SELECT login, password FROM user').fetchall()
-            print(result)
+
             for record in result:
-                print(record)
-                print((self.luser.text(),self.lpassword.text()))
+
                 true_login=False
                 if str(record[0])==self.luser.text():
                     if str(record[1])==self.lpassword.text():
-                        print('ok')
+
                         psw = cur.execute(
                             'SELECT user.login,rights.admin FROM user,rights WHERE user.id=rights.id').fetchall()
-                        print(psw)
+
                         dic=dict(psw)
                         if dic[str(self.luser.text())]==1:#является админом
                             self.par.userRight = 'admin'
