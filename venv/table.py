@@ -2,7 +2,7 @@
 from PyQt5 import uic
 from PyQt5.QtWidgets import QWidget,QApplication,QMessageBox,QHeaderView,QAction,QDesktopWidget,QTableWidgetItem
 from login import Login_window
-
+from PyQt5 import QtGui
 import sqlite3
 
 
@@ -43,9 +43,16 @@ class Table(QWidget):
         # заполнение таблицы из бд
         self.fill_table()
         # растягиваем таблицу на все пространство
-        self.tableWidget.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.tableWidget.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.horizontalSlider.valueChanged[int].connect(self.changeValue)
 
+    def changeValue(self, value):
+        print(value)
+        for row in range(self.table.rowCount()):
+            for column in range(self.table.columnCount()):
+                if self.table.item(row, column):
+                    self.table.item(row, column).setFont(QtGui.QFont("Times", 5+value))
     def save(self):
         ''' Сохраняет таблицу, если при сохранении выявляются дубли учеников/препоадвателей, появлется диалоговое окно'''
         if self.userRight == 'teacher':
@@ -71,27 +78,27 @@ class Table(QWidget):
                     dic_lesson[lesson]=[(teacher, student)]
             # Сравниваем текущее состояние таблицы со словарем
             print(dic_lesson)
-            for row in range(self.tableWidget.rowCount()):
-                for column in range(self.tableWidget.columnCount()):
+            for row in range(self.table.rowCount()):
+                for column in range(self.table.columnCount()):
                     lesson=str(row)+' '+str(column)
-                    if self.tableWidget.item(row, column): # Перебираем ячейке таблицы, где есть запись
+                    if self.table.item(row, column): # Перебираем ячейке таблицы, где есть запись
                         if lesson not in dic_lesson: # Если вобщем расписании урок свободен, можем записать
                             record=True
                         else: # Если в общем расписании на этом уроке есть занятия
 
-                            sql = "SELECT timetable.lesson, user.login FROM timetable,student,user WHERE user.id=timetable.teacher_id AND student.id=timetable.student_id AND student.surname='"+self.tableWidget.item(row, column).text()+"'"
+                            sql = "SELECT timetable.lesson, user.login FROM timetable,student,user WHERE user.id=timetable.teacher_id AND student.id=timetable.student_id AND student.surname='"+self.table.item(row, column).text()+"'"
                             student_lessons = dict(cur.execute(sql).fetchall())
                             if lesson in student_lessons:  # Проверяем уроки уже существующие в общем расписании
                                 if student_lessons[lesson]!=self.userName: # у ученика не может быть несколько уроков одновременно
                                     save_error = QMessageBox.information(self, 'Ошибка сохранения',
-                                                                          "У {} уже занят урок {}".format(self.tableWidget.item(row, column).text(),lesson))
+                                                                          "У {} уже занят урок {}".format(self.table.item(row, column).text(),lesson))
                                 record = False
 
 
                             else: # Проверяем, что не произошло изменений в существующих записях
                                 record = True
                                 for lesson_in_tt in filter(lambda x: x[0]==self.userName,dic_lesson[lesson]):
-                                    if lesson_in_tt[1]!=self.tableWidget.item(row, column).text():
+                                    if lesson_in_tt[1]!=self.table.item(row, column).text():
                                         add_student_error = QMessageBox.information(self, 'Ошибка сохранения',
                                                                             "Перенос занятий {} должен быть согласован администратором".format(
                                                                                 lesson_in_tt[1]))
@@ -101,7 +108,7 @@ class Table(QWidget):
 
 
                         if record:
-                            student = self.tableWidget.item(row, column).text()
+                            student = self.table.item(row, column).text()
                             sql = "SELECT id from student WHERE surname='{}'".format(str(student))
                             sid=cur.execute(sql).fetchall()
                             if sid:
@@ -135,10 +142,10 @@ class Table(QWidget):
 
 
     def cancel(self):
-        for row in range(self.tableWidget.rowCount()):
-            for column in range(self.tableWidget.columnCount()):
-                if self.tableWidget.item(row, column):
-                    self.tableWidget.setItem(row, column, None)
+        for row in range(self.table.rowCount()):
+            for column in range(self.table.columnCount()):
+                if self.table.item(row, column):
+                    self.table.setItem(row, column, None)
         self.fill_table()
 
     def fill_table(self):
@@ -169,7 +176,7 @@ class Table(QWidget):
                 day = cur.execute(sql).fetchone()[0]
 
 
-            self.tableWidget.setItem(row,column, QTableWidgetItem(day))
+            self.table.setItem(row,column, QTableWidgetItem(day))
         con.close()
 
     def back(self):
