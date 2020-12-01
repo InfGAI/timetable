@@ -49,10 +49,9 @@ class Window(QMainWindow):
         self.mlogin.triggered.connect(self.menu_login)
         # кнопка Регистарция
         self.reg.setStatusTip('Зарегистрироваться')
-        if self.userRight != None:
-            self.bset.setEnabled(True)
-        else:
-            self.bset.setEnabled(False)
+
+        def __init__(self, width, height, n):
+            super().__init__(width, height)
         self.reg.triggered.connect(self.menu_reg)
         self.bview.clicked.connect(self.view)
         self.bset.clicked.connect(self.set)
@@ -66,6 +65,7 @@ class Window(QMainWindow):
         if self.userName==None:
             self.mexit.setVisible(False)
         else:
+            self.mexit.setVisible(True)
             self.mexit.setVisible(True)
             self.mexit.setStatusTip('Выйти')
 
@@ -100,11 +100,10 @@ class Window(QMainWindow):
         self.child_wnd = Table(self.userName,self)
         self.child_wnd.show()
 
-    def set(self,n):
-        if self.userRight != None:
-            self.userName = n
+    def set(self):
+        if self.userRight == 'admin':
             self.close()
-            self.wnd = Table(self,n)
+            self.wnd = Table(self.userName,self,clear=True)
             self.wnd.show()
         else:
             login_error = QMessageBox.information(self, 'Ошибка авторизации',

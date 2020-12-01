@@ -24,9 +24,9 @@ sys.excepthook = log_uncaught_exceptions
 
 
 class Table(QWidget):
-    def __init__(self, Uname=None,parent=None):
+    def __init__(self, Uname=None,parent=None,clear=False):
         super(Table, self).__init__()
-
+        self.clear=clear
         self.par = parent  # так получаем сыылку на родительское окно для использования на кнопке назад
         uic.loadUi("table.ui", self)
         self.user_size(1920, 1080)  # подставляем разрешение рабочего экрана
@@ -41,7 +41,8 @@ class Table(QWidget):
         self.lbl_user.setText(Uname)
         self.bcancel.clicked.connect(self.cancel)  # Кнопка ОТМЕНА
         # заполнение таблицы из бд
-        self.fill_table()
+        if not clear:
+            self.fill_table()
         # растягиваем таблицу на все пространство
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
         self.table.verticalHeader().setSectionResizeMode(QHeaderView.Stretch)
@@ -54,30 +55,40 @@ class Table(QWidget):
                 if self.table.item(row, column):
                     self.table.item(row, column).setFont(QtGui.QFont("Times", 5+value))
     def save(self):
+        if self.clear:
+            clear_error = QMessageBox.question(self,"ВНИМАНИЕ!!!","Действие уничтожит существующее расписание!!!",QMessageBox.Yes|QMessageBox.No)
+            if clear_error==QMessageBox.Yes:
+                self.save_changes()
+            else:
+                self.fill_table()
+        else:
+            self.save_changes()
+
+
+
+
+
+    def save_changes(self):
         ''' Сохраняет таблицу, если при сохранении выявляются дубли учеников/препоадвателей, появлется диалоговое окно'''
+        con = sqlite3.connect('db1.db')
+        cur = con.cursor()
+        sql = '''SELECT timetable.lesson,user.login,student.surname FROM timetable,user,student WHERE 
+                                                timetable.teacher_id=user.id AND student.id=timetable.student_id'''
+        all_lessons = cur.execute(sql).fetchall()
+        # Создаем из результата запроса к ДБ словарь, где ключ урок, а содержимое - список кортежей учитель-ученик
+        dic_lesson = {}
+        for item in all_lessons:
+            lesson, teacher, student = item
+            if lesson in dic_lesson:
+                dic_lesson[lesson].append((teacher, student))
+            else:
+                dic_lesson[lesson] = [(teacher, student)]
         if self.userRight == 'teacher':
-            con = sqlite3.connect('db1.db')
-            cur = con.cursor()
             teacher = self.userName
+            record_ok=False
             uid = "SELECT id from user WHERE login='{}'".format(str(teacher))
             tid = cur.execute(uid).fetchall()[0][0]
-            id = 'WHERE id =' + str(tid)
-            sql = '''SELECT timetable.lesson,user.login,student.surname FROM timetable,user,student WHERE 
-                                                    timetable.teacher_id=user.id AND student.id=timetable.student_id'''
-            all_lessons=cur.execute(sql).fetchall()
-
-            # Создаем из результата запроса к ДБ словарь, где ключ урок, а содержимое - список кортежей учитель-ученик
-            dic_lesson={}
-
-            for item in all_lessons:
-                lesson,teacher,student=item
-
-                if lesson in dic_lesson:
-                    dic_lesson[lesson].append((teacher,student))
-                else:
-                    dic_lesson[lesson]=[(teacher, student)]
             # Сравниваем текущее состояние таблицы со словарем
-            print(dic_lesson)
             for row in range(self.table.rowCount()):
                 for column in range(self.table.columnCount()):
                     lesson=str(row)+' '+str(column)
@@ -85,7 +96,6 @@ class Table(QWidget):
                         if lesson not in dic_lesson: # Если вобщем расписании урок свободен, можем записать
                             record=True
                         else: # Если в общем расписании на этом уроке есть занятия
-
                             sql = "SELECT timetable.lesson, user.login FROM timetable,student,user WHERE user.id=timetable.teacher_id AND student.id=timetable.student_id AND student.surname='"+self.table.item(row, column).text()+"'"
                             student_lessons = dict(cur.execute(sql).fetchall())
                             if lesson in student_lessons:  # Проверяем уроки уже существующие в общем расписании
@@ -93,8 +103,6 @@ class Table(QWidget):
                                     save_error = QMessageBox.information(self, 'Ошибка сохранения',
                                                                           "У {} уже занят урок {}".format(self.table.item(row, column).text(),lesson))
                                 record = False
-
-
                             else: # Проверяем, что не произошло изменений в существующих записях
                                 record = True
                                 for lesson_in_tt in filter(lambda x: x[0]==self.userName,dic_lesson[lesson]):
@@ -106,8 +114,8 @@ class Table(QWidget):
                                         record = False
                                         break
 
-
                         if record:
+                            record_ok=True
                             student = self.table.item(row, column).text()
                             sql = "SELECT id from student WHERE surname='{}'".format(str(student))
                             sid=cur.execute(sql).fetchall()
@@ -118,18 +126,48 @@ class Table(QWidget):
                                 sid = cur.execute(sql).fetchall()[0][0]+1
                                 sql = '''INSERT INTO student(id,surname) VALUES (?, ?)'''  # по id записываем уроки в расписание
                                 cur.execute(sql, (sid, student))
-
-
-
                             sql = '''INSERT INTO timetable(teacher_id, lesson,student_id) VALUES (?, ?,?)'''  # по id записываем уроки в расписание
                             cur.execute(sql, (tid, lesson,sid))
-
-
-
-
-
             con.commit()
+            if record_ok:
+                clear_error = QMessageBox.information(self, "ОК", "Расписание обновлено.")
 
+
+        elif self.userRight=='admin':
+            sql = "SELECT name,id from user"
+            dic_tid=dict(cur.execute(sql).fetchall())
+            sql = "SELECT surname,id from student"
+            dic_sid = dict(cur.execute(sql).fetchall())
+            # Создаем словарь имя - id
+            sid=1
+            cur.execute('DELETE FROM timetable')
+            for row in range(self.table.rowCount()):
+                for column in range(self.table.columnCount()):
+                    lesson = str(row) + ' ' + str(column)
+                    if self.table.item(row, column) and self.table.item(row, column).text():  # Перебираем ячейке таблицы, где есть запись
+                        for item in self.table.item(row, column).text().strip().split('\n'):
+                            teacher, student = item.split()
+                            if student not in dic_sid:
+                                sql = 'SELECT MAX(id) FROM student'
+                                sid = cur.execute(sql).fetchall()[0][0] + 1
+                                sql = '''INSERT INTO student(id,surname) VALUES (?, ?)'''
+                                cur.execute(sql, (sid, student))
+                            else:
+                                sid = dic_sid[student]
+
+
+                            if teacher not in dic_tid:
+                                sql = 'SELECT MAX(id) FROM user'
+                                tid = cur.execute(sql).fetchall()[0][0] + 1
+                                sql = '''INSERT INTO user(id,name) VALUES (?, ?)'''
+                                cur.execute(sql, (tid, teacher))
+                            else:
+                                tid = dic_tid[teacher]
+
+                            sql = '''INSERT INTO timetable(teacher_id, lesson,student_id) VALUES (?, ?,?)'''  # по id записываем уроки в расписание
+                            cur.execute(sql, (tid, lesson, sid))
+            con.commit()
+            clear_error = QMessageBox.information(self, "ОК", "Расписание обновлено.")
         else:
             login_error = QMessageBox.information(self, 'Ошибка авторизации',
                                                   "Для внесения изменений авторизуйтесь, пожалуйста.")
@@ -163,11 +201,12 @@ class Table(QWidget):
         for item in result:
             row,column=map(int,item[0].split())
             if self.userRight == 'admin' or self.userRight == None:
+                if self.userRight == None:
+                    self.bcancel.hide()
+                    self.bsave.hide()
                 sql= '''SELECT user.name, student.surname FROM timetable,user,student WHERE
                         timetable.teacher_id=user.id AND student.id=timetable.student_id AND timetable.lesson="{}"'''.format(item[0])
-                self.bcancel.hide()
-                self.bsave.hide()
-                self.resize(self.width()*1.03,self.height()*1.02)
+                self.resize(self.width()*1.01,self.height()*1.02)
                 self.center()
                 day = '\n'.join([' '.join(list(item)) for item in cur.execute(sql).fetchall()])
             else:
@@ -181,6 +220,7 @@ class Table(QWidget):
 
     def back(self):
         self.par.show()  # показываем родительское окно
+
         self.close()
 
     def center(self):
