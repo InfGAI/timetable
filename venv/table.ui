@@ -25,33 +25,70 @@
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="2" column="2">
-      <widget class="QPushButton" name="bsave">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Сохранить</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="1" column="0" colspan="5">
-      <widget class="QTableWidget" name="table">
-       <property name="enabled">
-        <bool>true</bool>
-       </property>
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
+        <item row="0" column="6">
+            <widget class="QLabel" name="lbl_user">
+                <property name="text">
+                    <string>TextLabel</string>
+                </property>
+            </widget>
+        </item>
+        <item row="3" column="5">
+            <widget class="QPushButton" name="bexport">
+                <property name="text">
+                    <string>Экспорт расписания</string>
+                </property>
+            </widget>
+        </item>
+        <item row="3" column="6">
+            <widget class="QPushButton" name="bimport">
+                <property name="text">
+                    <string>Загрузка расписания</string>
+                </property>
+            </widget>
+        </item>
+        <item row="3" column="3">
+            <widget class="QPushButton" name="bsave">
+                <property name="sizePolicy">
+                    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                    </sizepolicy>
+                </property>
+                <property name="text">
+                    <string>Сохранить</string>
+                </property>
+                <attribute name="buttonGroup">
+                    <string notr="true">buttonGroup</string>
+                </attribute>
+            </widget>
+        </item>
+        <item row="3" column="4">
+            <widget class="QPushButton" name="bback">
+                <property name="sizePolicy">
+                    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                    </sizepolicy>
+                </property>
+                <property name="text">
+                    <string>Назад</string>
+                </property>
+                <attribute name="buttonGroup">
+                    <string notr="true">buttonGroup</string>
+                </attribute>
+            </widget>
+        </item>
+        <item row="1" column="0" colspan="7">
+            <widget class="QTableWidget" name="table">
+                <property name="enabled">
+                    <bool>true</bool>
+                </property>
+                <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                    </sizepolicy>
+                </property>
        <property name="styleSheet">
         <string notr="true">font: 10pt &quot;MS Shell Dlg 2&quot;;</string>
        </property>
@@ -150,113 +187,90 @@
        </column>
        <column>
         <property name="text">
-         <string>Вс</string>
+            <string>Вс</string>
         </property>
        </column>
-       <item row="0" column="0">
-        <property name="flags">
-         <set>ItemIsEnabled</set>
-        </property>
-       </item>
-      </widget>
-     </item>
-     <item row="0" column="4">
-      <widget class="QLabel" name="lbl_user">
-       <property name="text">
-        <string>TextLabel</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <spacer name="horizontalSpacer">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>307</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="0" column="0" colspan="4">
-      <widget class="QLabel" name="label">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
-         <horstretch>1</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="font">
-        <font>
-         <family>Arial</family>
-         <pointsize>14</pointsize>
-        </font>
-       </property>
-       <property name="text">
-        <string>Текущее расписание преподавателей</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QPushButton" name="bcancel">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Отменить</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="2" column="3">
-      <widget class="QPushButton" name="bback">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-       <property name="text">
-        <string>Назад</string>
-       </property>
-       <attribute name="buttonGroup">
-        <string notr="true">buttonGroup</string>
-       </attribute>
-      </widget>
-     </item>
-     <item row="3" column="0" colspan="3">
-      <widget class="QSlider" name="horizontalSlider">
-       <property name="maximum">
-        <number>9</number>
-       </property>
-       <property name="value">
-        <number>5</number>
-       </property>
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="3" colspan="2">
-      <widget class="QLabel" name="label_2">
-       <property name="cursor">
-        <cursorShape>OpenHandCursor</cursorShape>
-       </property>
-       <property name="autoFillBackground">
-        <bool>true</bool>
-       </property>
-       <property name="text">
-        <string>Изменить шрифт</string>
-       </property>
-      </widget>
-     </item>
+                <item row="0" column="0">
+                    <property name="flags">
+                        <set>ItemIsEnabled</set>
+                    </property>
+                </item>
+            </widget>
+        </item>
+        <item row="5" column="0" colspan="4">
+            <widget class="QSlider" name="horizontalSlider">
+                <property name="maximum">
+                    <number>9</number>
+                </property>
+                <property name="value">
+                    <number>5</number>
+                </property>
+                <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                </property>
+            </widget>
+        </item>
+        <item row="3" column="0">
+            <widget class="QPushButton" name="bcancel">
+                <property name="sizePolicy">
+                    <sizepolicy hsizetype="Maximum" vsizetype="Fixed">
+                        <horstretch>0</horstretch>
+                        <verstretch>0</verstretch>
+                    </sizepolicy>
+                </property>
+                <property name="text">
+                    <string>Отменить</string>
+                </property>
+                <attribute name="buttonGroup">
+                    <string notr="true">buttonGroup</string>
+                </attribute>
+            </widget>
+        </item>
+        <item row="5" column="4" colspan="3">
+            <widget class="QLabel" name="label_2">
+                <property name="cursor">
+                    <cursorShape>OpenHandCursor</cursorShape>
+                </property>
+                <property name="autoFillBackground">
+                    <bool>true</bool>
+                </property>
+                <property name="text">
+                    <string>Изменить шрифт</string>
+                </property>
+            </widget>
+        </item>
+        <item row="0" column="0" colspan="5">
+            <widget class="QLabel" name="label">
+                <property name="sizePolicy">
+                    <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+                        <horstretch>1</horstretch>
+                        <verstretch>0</verstretch>
+                    </sizepolicy>
+                </property>
+                <property name="font">
+                    <font>
+                        <family>Arial</family>
+                        <pointsize>14</pointsize>
+                    </font>
+                </property>
+                <property name="text">
+                    <string>Текущее расписание преподавателей</string>
+                </property>
+            </widget>
+        </item>
+        <item row="3" column="1" colspan="2">
+            <spacer name="horizontalSpacer">
+                <property name="orientation">
+                    <enum>Qt::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                    <size>
+                        <width>307</width>
+                        <height>20</height>
+                    </size>
+                </property>
+            </spacer>
+        </item>
     </layout>
    </item>
   </layout>
