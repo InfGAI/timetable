@@ -88,6 +88,10 @@
    </layout>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>luser</tabstop>
+  <tabstop>lpassword</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>

@@ -1,89 +1,93 @@
-import pyqt5_tools
+"""Основной файл приложения"""
+import os
+import sys
+
 from PyQt5 import uic
-from PyQt5.QtWidgets import QWidget,QApplication,QPushButton,QMainWindow,QAction,QDesktopWidget
+from PyQt5.QtWidgets import QApplication, QMessageBox, QMainWindow
+
+from functions import center, user_size
 from login import Login_window
 from registration import Reg_window
 from table import Table
 
-#модификация для вывода информации об ошибке, а не просто исключении
-def log_uncaught_exceptions(ex_cls, ex, tb):
-    text = '{}: {}:\n'.format(ex_cls.__name__, ex)
-    import traceback
-    text += ''.join(traceback.format_tb(tb))
 
-    print(text)
-    QtWidget.QMessageBox.critical(None, 'Error', text)
-    quit()
-
-
-import sys
-
-sys.excepthook = log_uncaught_exceptions
-
+def resource_path(relative):
+    """Получение абсолютного пути к файлу."""
+    if hasattr(sys, "_MEIPASS"):
+        return os.path.join(sys._MEIPASS, relative)
+    return os.path.join(relative)
 
 
 class Window(QMainWindow):
-    def __init__(self):
-        super(Window,self).__init__()
-        uic.loadUi("main.ui",self)
-        self.user_size(1920,1080) #подставляем разрешение рабочего экрана
-        self.center() # размещение окна по центру
-        #loginAction = QAction("login",self)
-        #self.login.setShortcut('Ctrl+Q')
-        #при создании из дизайнера, виджеты уже являются QAction
+    """сновной класс приложения, формирующий начальное окно"""
 
-        # кнопка Войти
+    def __init__(self):
+        super(Window, self).__init__()
+        path = resource_path('image.png')
+        uic.loadUi("main.ui", self)
+        user_size(self)
+        center(self)
+        self.userRight = None
+        self.userName = None
+        # Меню
         self.mlogin.setStatusTip('Войти')
         self.mlogin.triggered.connect(self.menu_login)
-        # кнопка Регистарция
-        self.reg.setStatusTip('Войти')
+        self.readme.triggered.connect(lambda: os.startfile(r'Readme.txt'))
+        self.autor.aboutToShow.connect(self.set_menu)  # Добавляем в меню Выход, если залогинен пользователь.
+        self.autor.triggered.connect(self.exit_menu)
+        self.reg.setStatusTip('Зарегистрироваться')
+        # Кнопки
         self.reg.triggered.connect(self.menu_reg)
         self.bview.clicked.connect(self.view)
         self.bset.clicked.connect(self.set)
 
-    def center(self):
-        # центрирование окна в зависимости от параметров пользовательского мотитора
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
+    def exit_menu(self):
+        """Меню Выход"""
+        self.userRight = None
+        self.userName = None
 
-    def user_size(self,my_width,my_height):
-        # изменение размеров окна в зависимости от параметров пользовательского мотитора
-        user_height = QDesktopWidget().availableGeometry().height()
-        user_width = QDesktopWidget().availableGeometry().width()
-        new_height= self.height()*user_height//my_height
-        new_width=self.width() *user_width//my_width
-        self.resize(new_width*2,new_height*2) # размеры половинчатые???
+    def set_menu(self):
+        """ Добавляем в меню Выход, если залогинен пользователь."""
+        if self.userName is None:
+            self.mexit.setVisible(False)
+        else:
+            self.mexit.setVisible(True)
+            self.mexit.setVisible(True)
+            self.mexit.setStatusTip('Выйти')
 
     def menu_login(self):
+        """Меню Войти"""
         self.wlogin = Login_window(self)
         self.wlogin.show()
-        self.wlogin.adminSignal.connect(self.view)
-        self.wlogin.teacherSignal.connect(lambda: print('teacher'))
+        self.wlogin.adminSignal[str].connect(self.view)
+        self.wlogin.teacherSignal[str].connect(self.view)
+
     def menu_reg(self):
+        """Меню Регистрация"""
         wlogin = Reg_window(self)
         wlogin.exec_()
 
     def view(self):
+        """Кнопка Просмотр расписания - отображение расписание в зависимости от пользователя"""
         self.hide()
-        self.child_wnd = Table(self)
-
+        self.child_wnd = Table(self.userName, self)
         self.child_wnd.show()
-        self.user='admin'
-
 
     def set(self):
-        self.close()
-        self.wnd = Table(self)
-        self.wnd.show()
-        self.user = 'teacher'
+        """Кнопка Задать расписание - доступна только для администратора"""
+        if self.userRight == 'admin':
+            self.close()
+            self.wnd = Table(self.userName, self, clear=True)
+            self.wnd.show()
+        else:
+            login_error = QMessageBox.information(self, 'Ошибка авторизации',
+                                                  "Для внесения изменений авторизуйтесь, пожалуйста.")
+            if login_error == QMessageBox.Ok:
+                self.menu_login()
 
 
-if __name__=='__main__':
-    app=QApplication(sys.argv)
-    wnd=Window()
+if __name__ == '__main__':
+    app = QApplication(sys.argv)
+    wnd = Window()
     wnd.show()
     sys.exit(app.exec())
-
-
