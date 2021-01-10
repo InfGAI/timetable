@@ -72,7 +72,7 @@
      <x>0</x>
      <y>0</y>
      <width>465</width>
-     <height>18</height>
+     <height>21</height>
     </rect>
    </property>
    <widget class="QMenu" name="autor">
@@ -87,32 +87,42 @@
     <property name="title">
      <string>Помощь</string>
     </property>
-    <addaction name="about"/>
+       <addaction name="readme"/>
    </widget>
    <addaction name="autor"/>
    <addaction name="help"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="about">
-   <property name="text">
-    <string>О программе</string>
-   </property>
-  </action>
   <action name="mlogin">
    <property name="text">
     <string>Вход</string>
    </property>
   </action>
-  <action name="reg">
-   <property name="text">
-    <string>Регистрация</string>
-   </property>
-  </action>
-  <action name="mexit">
-   <property name="text">
-    <string>Выход</string>
-   </property>
-  </action>
+     <action name="reg">
+         <property name="text">
+             <string>Регистрация</string>
+         </property>
+     </action>
+     <action name="mexit">
+         <property name="text">
+             <string>Выход</string>
+         </property>
+     </action>
+     <action name="error">
+         <property name="text">
+             <string>Файл Readme отсутствует</string>
+         </property>
+     </action>
+     <action name="error_2">
+         <property name="text">
+             <string>Файл Readme не найден</string>
+         </property>
+     </action>
+     <action name="readme">
+         <property name="text">
+             <string>О программе</string>
+         </property>
+     </action>
  </widget>
  <resources/>
  <connections/>

@@ -1,30 +1,17 @@
-"""Модуль отображения таблицы расписания
-"""
+"""Модуль отображения таблицы расписания"""
 from PyQt5 import uic
-from PyQt5.QtWidgets import QWidget, QApplication, QMessageBox, QHeaderView, QDesktopWidget, QTableWidgetItem, \
+from PyQt5.QtWidgets import QWidget, QMessageBox, QHeaderView, QTableWidgetItem, \
     QFileDialog
 from login import Login_window
+from functions import center, user_size
 from PyQt5 import QtGui
 import sqlite3
 import sys
 import csv
 
 
-# модификация для вывода информации об ошибке, а не просто исключении
-def log_uncaught_exceptions(ex_cls, ex, tb):
-    text = '{}: {}:\n'.format(ex_cls.__name__, ex)
-    import traceback
-    text += ''.join(traceback.format_tb(tb))
-
-    QMessageBox.critical(None, 'Error', text)
-    quit()
-sys.excepthook = log_uncaught_exceptions
-
-
 class Table(QWidget):
-    """Основной класс таблицы расписания
-
-    """
+    """Основной класс таблицы расписания"""
 
     def __init__(self, Uname=None, parent=None, clear=False):
         """Созадет QWidget таблицу расписания
@@ -38,8 +25,8 @@ class Table(QWidget):
         self.clear = clear
         self.par = parent  # так получаем сыылку на родительское окно для использования на кнопке назад
         uic.loadUi("table.ui", self)
-        self.user_size(1920, 1080)  # подставляем разрешение своего рабочего экрана для масштабирования
-        self.center()
+        user_size(self)
+        center(self)
         self.userName = Uname
         con = sqlite3.connect('db1.db')
         cur = con.cursor()
@@ -49,7 +36,7 @@ class Table(QWidget):
         self.bback.clicked.connect(self.back)  # Кнопка НАЗАД
         self.bsave.clicked.connect(self.save)  # Кнопка СОХРАНИТЬ
         self.bimport.clicked.connect(self.import_table)  # Кнопка ЗАГРУЗИТЬ РАСПИСАНИЕ
-        self.bexport.clicked.connect(self.export_table)  # Кнопка ЭКСПОРТ РАСПИСАНИЯ
+        self.bexport.clicked.connect(self.export_table)  # Кнопка СОХРАНИТЬ РАСПИСАНИЕ
         self.bcancel.clicked.connect(self.cancel)  # Кнопка ОТМЕНА
         # заполнение таблицы из бд
         if not clear:
@@ -70,9 +57,7 @@ class Table(QWidget):
                     self.table.item(row, column).setFont(QtGui.QFont("Times", 5 + value))
 
     def save(self):
-        """Кнопка СОХРАНИТЬ
-
-        """
+        """Кнопка СОХРАНИТЬ"""
         if self.clear:
             clear_error = QMessageBox.question(self, "ВНИМАНИЕ!!!", "Действие уничтожит существующее расписание!!!",
                                                QMessageBox.Yes | QMessageBox.No)
@@ -84,9 +69,7 @@ class Table(QWidget):
             self.save_changes()
 
     def save_changes(self):
-        """Сохраняет таблицу, если при сохранении выявляются дубли учеников/препоадвателей, появлется диалоговое окно
-
-        """
+        """Сохраняет таблицу, если при сохранении выявляются дубли учеников/препоадвателей, появлется диалоговое окно"""
         con = sqlite3.connect('db1.db')
         cur = con.cursor()
         sql = '''SELECT timetable.lesson,user.login,student.surname FROM timetable,user,student WHERE 
@@ -153,7 +136,6 @@ class Table(QWidget):
             dic_tid=dict(cur.execute(sql).fetchall())
             sql = "SELECT surname,id from student"
             dic_sid = dict(cur.execute(sql).fetchall())
-            # Создаем словарь имя - id
             sid=1
             cur.execute('DELETE FROM timetable')
             for row in range(self.table.rowCount()):
@@ -188,20 +170,25 @@ class Table(QWidget):
                 self.menu_login()
 
     def import_table(self):
+        """Сохранение текущего вида расписания в файл timetable.csv"""
         fname = QFileDialog.getOpenFileName(self, 'Open file')
-        with open(fname[0], encoding="utf8") as csvfile:
-            reader = csv.reader(csvfile, delimiter=';', quotechar='"')
-            self.clear_table()
-            for i, row in enumerate(reader):
-                for j, cell in enumerate(row):
-                    if cell:
-                        self.table.setItem(i, j, QTableWidgetItem(cell))
+        print(fname[-3:])
+        if fname[-3:] != 'csv':
+            clear_error = QMessageBox.information(self, "Ошибка", "Расписание должно быть в формате .csv")
+        else:
+            with open(fname[0], encoding="utf8") as csvfile:
+                reader = csv.reader(csvfile, delimiter=';', quotechar='"')
+                self.clear_table()
+                for i, row in enumerate(reader):
+                    for j, cell in enumerate(row):
+                        if cell:
+                            self.table.setItem(i, j, QTableWidgetItem(cell))
 
     def export_table(self):
+        """Загрузка расписания из файла csv, для сохранения расписания в бд требуется нажать кнопку СОХРАНИТЬ"""
         with open('timetable.csv', 'w', newline='', encoding="utf8") as csvfile:
             writer = csv.writer(
                 csvfile, delimiter=';', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-
             for i in range(self.table.rowCount()):
                 row = []
                 for j in range(self.table.columnCount()):
@@ -213,26 +200,21 @@ class Table(QWidget):
                 writer.writerow(row)
 
     def cancel(self):
-        """Кнопка ОТМЕНА
-
-        """
+        """Кнопка ОТМЕНА"""
         self.clear_table()
         self.fill_table()
 
     def clear_table(self):
+        """Кнопка ОТМЕНА"""
         for row in range(self.table.rowCount()):
             for column in range(self.table.columnCount()):
                 if self.table.item(row, column):
                     self.table.setItem(row, column, None)
 
     def fill_table(self):
-        """Заполнение таблицы из бд
-
-        """
+        """Заполнение таблицы из бд"""
         con = sqlite3.connect('db1.db')
         cur = con.cursor()
-        sql = '''SELECT timetable.lesson FROM timetable'''
-        result = cur.execute(sql).fetchall()
         if self.userRight == 'admin' or self.userRight == None:
             sql = '''SELECT DISTINCT timetable.lesson FROM timetable'''  # Выбираем все существующие уроки в расписании
         else:
@@ -243,14 +225,14 @@ class Table(QWidget):
         for item in result:
             row,column=map(int,item[0].split())
             if self.userRight == 'admin' or self.userRight == None:
-                if self.userRight == None:
+                if self.userRight is None:
                     self.bcancel.hide()
                     self.bsave.hide()
                     self.bimport.hide()
                 sql= '''SELECT user.name, student.surname FROM timetable,user,student WHERE
                         timetable.teacher_id=user.id AND student.id=timetable.student_id AND timetable.lesson="{}"'''.format(item[0])
-                self.resize(self.width()*1.01,self.height()*1.02)
-                self.center()
+                self.resize(self.width() * 1.01, self.height() * 1.02)
+                center(self)
                 day = '\n'.join([' '.join(list(item)) for item in cur.execute(sql).fetchall()])
             else:
                 self.bimport.hide()
@@ -261,43 +243,14 @@ class Table(QWidget):
         con.close()
 
     def back(self):
-        """Кнопка НАЗАД
-
-        """
+        """Кнопка НАЗАД"""
         self.par.show()  # показываем родительское окно
         self.close()
 
-    def center(self):
-        """Центрирование окна в зависимости от параметров пользовательского мотитора
-
-        """
-        qr = self.frameGeometry()
-        cp = QDesktopWidget().availableGeometry().center()
-        qr.moveCenter(cp)
-        self.move(qr.topLeft())
-
-    def user_size(self, my_width, my_height):
-        """Изменение размеров окна в зависимости от параметров пользовательского мотитора
-
-        """
-        user_height = QDesktopWidget().availableGeometry().height()
-        user_width = QDesktopWidget().availableGeometry().width()
-        new_height = self.height() * user_height // my_height
-        new_width = self.width() * user_width // my_width
-        self.resize(new_width * 2, new_height * 2)
-
     def menu_login(self):
-        """Окно авторизации
-
-        """
+        """Окно авторизации"""
         self.wlogin = Login_window(self)
         self.wlogin.show()
 
-
-if __name__=='__main__':
-    app=QApplication(sys.argv)
-    wnd=Table()
-    wnd.show()
-    sys.exit(app.exec())
 
 
