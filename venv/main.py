@@ -47,13 +47,17 @@ class Window(QMainWindow):
         self.userName = None
 
     def set_menu(self):
-        """ Добавляем в меню Выход, если залогинен пользователь."""
+        """ Добавляем в меню Выход и скрываем Вход/Регистрация, если залогинен пользователь."""
         if self.userName is None:
             self.mexit.setVisible(False)
+            self.mlogin.setVisible(True)
+            self.reg.setVisible(True)
         else:
             self.mexit.setVisible(True)
             self.mexit.setVisible(True)
             self.mexit.setStatusTip('Выйти')
+            self.mlogin.setVisible(False)
+            self.reg.setVisible(False)
 
     def menu_login(self):
         """Меню Войти"""

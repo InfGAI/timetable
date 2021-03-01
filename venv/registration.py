@@ -1,13 +1,15 @@
 """Модуль регистрации пользователей"""
-import sys
-from PyQt5 import uic
-from PyQt5.QtWidgets import QMessageBox, QApplication, QDialog
 import sqlite3
-from table import Table
+
+from PyQt5 import uic
+from PyQt5.QtWidgets import QMessageBox, QDialog
+
 from functions import center, user_size
+from table import Table
+
 
 class Reg_window(QDialog):
-    def __init__(self,parent=None):
+    def __init__(self, parent=None):
         # поскольку окло логина может вызываться из родительского окна, обязательно добавить аргумент parent
         super(Reg_window, self).__init__()
         uic.loadUi("registration.ui", self)
@@ -26,22 +28,22 @@ class Reg_window(QDialog):
             con = sqlite3.connect('db1.db')
             cur = con.cursor()
             if self.r_admin.isChecked():
-                admin=1
+                admin = 1
             else:
-                admin=0
+                admin = 0
             sql = '''INSERT INTO user(login,password) VALUES (?, ?)'''
-            cur.execute(sql, (self.luser.text(),(self.lpassword.text())))
+            cur.execute(sql, (self.luser.text(), (self.lpassword.text())))
 
             sql = 'SELECT MAX(id) FROM user'
-            uid=cur.execute(sql).fetchall()[0][0]
+            uid = cur.execute(sql).fetchall()[0][0]
             print(uid)
 
             sql = '''INSERT INTO rights VALUES (?, ?)'''
-            cur.execute(sql, (admin,uid))
+            cur.execute(sql, (admin, uid))
             con.commit()  # если внесены изменения не просто close
 
             self.close()
-            self.par.userName=self.luser.text()
+            self.par.userName = self.luser.text()
             self.child_wnd = Table(self.luser.text(), self)
             self.child_wnd.show()
         else:

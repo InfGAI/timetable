@@ -1,9 +1,10 @@
 """Меню авторизации"""
 import sqlite3
-import sys
-from functions import center, user_size
+
 from PyQt5 import uic, QtCore
-from PyQt5.QtWidgets import QApplication, QDialog, QDesktopWidget, QMessageBox
+from PyQt5.QtWidgets import QDialog, QMessageBox
+
+from functions import center, user_size
 
 
 class Login_window(QDialog):
