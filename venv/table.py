@@ -154,6 +154,7 @@ class Table(QWidget):
                                 cur.execute(sql, (sid, student))
                             sql = '''INSERT INTO timetable(teacher_id, lesson,student_id) VALUES (?, ?,?)'''  # по id записываем уроки в расписание
                             cur.execute(sql, (tid, lesson, sid))
+
             con.commit()
             if record_ok:
                 clear_error = QMessageBox.information(self, "ОК", "Расписание обновлено.")
