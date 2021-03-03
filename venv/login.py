@@ -22,37 +22,39 @@ class Login_window(QDialog):
         center(self)
         self.par = parent
         self.login_button.accepted.connect(self.on_click)
-        self.login_button.rejected.connect(self.exec)
 
     def on_click(self):
         """Кнопка ОК"""
-        if self.luser.text().isalpha():  # Проверка на дурака
-            con = sqlite3.connect('db1.db')
-            cur = con.cursor()
-            result = cur.execute('SELECT login, password FROM user').fetchall()
-            for record in result:
-                true_login = False
-                if str(record[0]) == self.luser.text():
-                    if str(record[1]) == self.lpassword.text():
-                        psw = cur.execute(
-                            'SELECT user.login,rights.admin FROM user,rights WHERE user.id=rights.id').fetchall()
-                        dic = dict(psw)
-                        if dic[str(self.luser.text())] == 1:  # является админом
-                            self.par.userRight = 'admin'
-                            self.par.userName = self.luser.text()
-                            self.adminSignal.emit(self.luser.text())
-                        else:
-                            self.par.userRight = 'teacher'
-                            self.par.userName = self.luser.text()
-                            self.teacherSignal.emit(self.luser.text())
+
+        con = sqlite3.connect('db1.db')
+        cur = con.cursor()
+        result = cur.execute('SELECT login, password FROM user').fetchall()
+        for record in result:
+            true_login = False
+            if str(record[0]) == self.luser.text():
+                if str(record[1]) == self.lpassword.text():
+                    psw = cur.execute(
+                        'SELECT user.login,rights.admin FROM user,rights WHERE user.id=rights.id').fetchall()
+                    dic = dict(psw)
+                    print(dic)
+                    if self.luser.text().isdigit():
+                        sur = int(self.luser.text())
                     else:
-                        QMessageBox.about(self, "Ошибка входа", "Неверный пароль")
-                        self.show()  # в стандартном accepted окно закрывается, открываем заново
-                    true_login = True
-                    break
-            con.close()
-            if not true_login:
-                QMessageBox.about(self, "Ошибка входа", "Неверное имя пользователя")
-                self.show()  # в стандартном accepted окно закрывается, открываем заново
-        else:
-            QMessageBox.about(self, "Ошибка входа", "Логин содержит только символы")
+                        sur = self.luser.text()
+                    if dic[sur] == 1:  # является админом
+                        self.par.userRight = 'admin'
+                        self.par.userName = self.luser.text()
+                        self.adminSignal.emit(self.luser.text())
+                    else:
+                        self.par.userRight = 'teacher'
+                        self.par.userName = self.luser.text()
+                        self.teacherSignal.emit(self.luser.text())
+                else:
+                    QMessageBox.about(self, "Ошибка входа", "Неверный пароль")
+                    self.show()  # в стандартном accepted окно закрывается, открываем заново
+                true_login = True
+                break
+        con.close()
+        if not true_login:
+            QMessageBox.about(self, "Ошибка входа", "Неверное имя пользователя")
+            self.show()  # в стандартном accepted окно закрывается, открываем заново

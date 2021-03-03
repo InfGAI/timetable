@@ -1,18 +1,15 @@
 """Модуль регистрации пользователей"""
 import sqlite3
 
-from PyQt5 import uic
+from PyQt5 import uic, QtCore, QtGui
 from PyQt5.QtWidgets import QMessageBox, QDialog
 
 from functions import center, user_size
 from table import Table
 
-def checkSymbol(*args):
-    return any(filter(lambda x: x == 0, args))
 
 class Reg_window(QDialog):
     def __init__(self, parent=None):
-        # поскольку окло логина может вызываться из родительского окна, обязательно добавить аргумент parent
         super(Reg_window, self).__init__()
         uic.loadUi("registration.ui", self)
         user_size(self)
@@ -20,12 +17,32 @@ class Reg_window(QDialog):
         self.par = parent
         self.reg_button.accepted.connect(self.on_click)
         self.reg_button.rejected.connect(self.exec)
+        self.group_lines = [self.luser, self.lpassword, self.lsurname, self.lname]
 
-    def stupid_test(self, name):
-        return name.isalpha()
+    def check_fill_lines(self, group):
+        return all(group)
+
+    def check_right_lines(selfself, group):
+        result = True
+        for item in group:
+            if not item.text():
+                result = False
+                item.setText('Заполните поле')
+            elif item.text() == 'Заполните поле':
+                result = False
+                color = QtCore.Qt.red
+                palette = item.palette()
+                palette.setColor(QtGui.QPalette.Text, color)
+                item.setPalette(palette)
+
+        return result
+
+    def accept(self):
+        if not self.check_fill_lines(self.group_lines):
+            super().accept()
 
     def on_click(self):
-        if checkSymbol(self.luser.text(), self.lpassword.text()):
+        if self.check_right_lines(self.group_lines):
             con = sqlite3.connect('db1.db')
             cur = con.cursor()
             if self.r_admin.isChecked():
@@ -34,16 +51,18 @@ class Reg_window(QDialog):
             else:
                 admin = 0
                 self.userRight = 'teacher'
-            sql = '''INSERT INTO user(login,password) VALUES (?, ?)'''
-            cur.execute(sql, (self.luser.text(), (self.lpassword.text())))
+            sql = '''INSERT INTO user(login,password,surname,name) VALUES (?, ?,?,?)'''
+            cur.execute(sql, (self.luser.text(), self.lpassword.text(), self.lsurname.text(), self.lname.text()))
             sql = 'SELECT MAX(id) FROM user'
             uid = cur.execute(sql).fetchall()[0][0]
             sql = '''INSERT INTO rights VALUES (?, ?)'''
             cur.execute(sql, (admin, uid))
             con.commit()
+            self.ok = True
             self.par.userName = self.luser.text()
+            QMessageBox.about(self, "ОK", "Регистрация успешна")
             self.child_wnd = Table(self.luser.text(), self)
             self.child_wnd.show()
-            self.hide()
+            super().accept()
         else:
-            QMessageBox.about(self, "Ошибка регистрации", "Логин может содержать только символы")
+            msg = QMessageBox.about(self, "Error", "Заполните поля")

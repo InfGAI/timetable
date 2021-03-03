@@ -25,7 +25,7 @@ sys.excepthook = log_uncaught_exceptions
 
 class Table(QWidget):
     """Основной класс таблицы расписания"""
-
+    weeks_day = {0: 'Понедельник', 1: 'Вторник', 2: 'Среда', 3: 'Четверг', 4: 'Пятница', 5: 'Суббота', 6: 'Воскресенье'}
     def __init__(self, Uname=None, parent=None, clear=False):
         """Созадет QWidget таблицу расписания
         :param Uname: пользователь
@@ -47,6 +47,8 @@ class Table(QWidget):
         self.userRight = self.par.userRight
         self.lbl_user.setText(Uname)
         # Описание кнопок
+        self.bsave.setEnabled(False)
+        self.bcancel.setEnabled(False)
         self.bback.clicked.connect(self.back)  # Кнопка НАЗАД
         self.bsave.clicked.connect(self.save)  # Кнопка СОХРАНИТЬ
         self.bimport.clicked.connect(self.import_table)  # Кнопка ЗАГРУЗИТЬ РАСПИСАНИЕ
@@ -63,8 +65,14 @@ class Table(QWidget):
             self.bcancel.hide()
             self.bsave.hide()
             self.bimport.hide()
-        elif self.userRight == 'user':
+        elif self.userRight == 'teacher':
             self.bimport.hide()
+
+        self.table.cellChanged.connect(self.check_change)
+
+    def check_change(self):
+        self.bsave.setEnabled(True)
+        self.bcancel.setEnabled(True)
 
     def changeValue(self, value):
         """Изменение размера шрифта таблицы
@@ -78,6 +86,8 @@ class Table(QWidget):
 
     def save(self):
         """Кнопка СОХРАНИТЬ"""
+        self.bcancel.setEnabled(False)
+        self.bsave.setEnabled(False)
         if self.clear:
             clear_error = QMessageBox.question(self, "ВНИМАНИЕ!!!", "Действие уничтожит существующее расписание!!!",
                                                QMessageBox.Yes | QMessageBox.No)
@@ -112,8 +122,6 @@ class Table(QWidget):
             tid = cur.execute(uid).fetchone()[0]
             # Сравниваем текущее состояние таблицы со словарем
             for row in range(self.table.rowCount()):
-                if not record:
-                    break
                 for column in range(self.table.columnCount()):
                     record = True
                     lesson = str(row) + ' ' + str(column)
@@ -124,15 +132,16 @@ class Table(QWidget):
                             sql = "SELECT timetable.lesson, user.login FROM timetable,student,user WHERE user.id=timetable.teacher_id AND student.id=timetable.student_id AND student.surname='" + self.table.item(
                                 row, column).text().strip() + "'"
                             student_lessons = dict(cur.execute(sql).fetchall())
-                            print(lesson, student_lessons)
+                            print(student, lesson, self.userName, student_lessons)
                             if lesson in student_lessons:  # Проверяем уроки студента уже существующие в общем расписании
                                 record = False
                                 if student_lessons[lesson] != self.userName:
                                     # у ученика не может быть несколько уроков одновременно у разных учителей
                                     save_error = QMessageBox.information(self, 'Ошибка сохранения',
-                                                                         "У {} уже занят урок {}".format(
+                                                                         "У {} уже занят {} {}й урок.".format(
                                                                              self.table.item(row, column).text(),
-                                                                             lesson))
+                                                                             self.weeks_day[column], str(row + 1)))
+                                    self.table.setItem(row, column, QTableWidgetItem(''))
                                     record_ok = False
                                     break
                             else:  # Проверяем, что не произошло изменений в существующих записях
@@ -159,12 +168,14 @@ class Table(QWidget):
                                 cur.execute(sql, (sid, student))
                             sql = '''INSERT INTO timetable(teacher_id, lesson,student_id) VALUES (?, ?,?)'''  # по id записываем уроки в расписание
                             cur.execute(sql, (tid, lesson, sid))
-
+                if not record_ok:
+                    break
+            print(record_ok)
             if record_ok:
                 con.commit()
                 clear_error = QMessageBox.information(self, "ОК", "Расписание обновлено.")
         elif self.userRight == 'admin':
-            sql = "SELECT name,id from user"
+            sql = "SELECT surname,id from user"
             dic_tid = dict(cur.execute(sql).fetchall())
             sql = "SELECT surname,id from student"
             dic_sid = dict(cur.execute(sql).fetchall())
@@ -195,8 +206,10 @@ class Table(QWidget):
                             if teacher not in dic_tid:
                                 sql = 'SELECT MAX(id) FROM user'
                                 tid = cur.execute(sql).fetchall()[0][0] + 1
-                                sql = '''INSERT INTO user(id,name) VALUES (?, ?)'''
-                                cur.execute(sql, (tid, teacher))
+                                sql = '''INSERT INTO user(login,password,id,surname) VALUES (?,?,?, ?)'''
+                                cur.execute(sql, (teacher, 123, tid, teacher))
+                                sql = '''INSERT INTO rights(admin,id) VALUES (?,?)'''
+                                cur.execute(sql, (0, tid))
                             else:
                                 tid = dic_tid[teacher]
 
@@ -272,17 +285,17 @@ class Table(QWidget):
                     timetable.teacher_id=user.id AND user.login="{}"'''.format(
                 self.userName)  # Выбираем все существующие уроки данного учителя в расписании
         result = cur.execute(sql).fetchall()
+        print(result)
         for item in result:
             row, column = map(int, item[0].split())
             if self.userRight == 'admin' or self.userRight is None:
-                sql = '''SELECT user.name, student.surname FROM timetable,user,student WHERE
-                        timetable.teacher_id=user.id AND student.id=timetable.student_id AND timetable.lesson="{}"'''.format(
+                sql = '''SELECT user.surname, student.surname FROM timetable,user,student WHERE timetable.teacher_id=user.id AND student.id=timetable.student_id AND timetable.lesson="{}"'''.format(
                     item[0])
-                day = '\n'.join([' '.join(list(item)) for item in cur.execute(sql).fetchall()])
+                day = '\n'.join([' '.join(list(map(str, item))) for item in cur.execute(sql).fetchall()])
             else:
                 sql = '''SELECT student.surname FROM timetable,user,student WHERE
                                         timetable.teacher_id=user.id AND student.id=timetable.student_id AND timetable.lesson="{}" AND user.login="{}"'''.format(
-                    item[0], self.userName)
+                    str(item[0]), self.userName)
                 day = cur.execute(sql).fetchone()[0]
             self.table.setItem(row, column, QTableWidgetItem(day))
         con.close()
@@ -290,7 +303,7 @@ class Table(QWidget):
     def back(self):
         """Кнопка НАЗАД"""
         self.par.show()  # показываем родительское окно
-        self.hide()
+        self.close()
 
     def menu_login(self):
         """Окно авторизации"""
