@@ -116,47 +116,55 @@ class Table(QWidget):
 
         if self.userRight == 'teacher':
             teacher = self.userName
-            record_ok = False  # Внесены ли изменения в таблицу
+            record_ok = True  # Внесены ли изменения в таблицу
             record = True  # пишем ли текущую ячейку
             uid = "SELECT id from user WHERE login='{}'".format(str(teacher))
             tid = cur.execute(uid).fetchone()[0]
+
             # Сравниваем текущее состояние таблицы со словарем
             for row in range(self.table.rowCount()):
                 for column in range(self.table.columnCount()):
                     record = True
                     lesson = str(row) + ' ' + str(column)
+                    # Для всех непустх ячеек
+
                     if self.table.item(row, column) and self.table.item(row,
                                                                         column).text().strip():  # Перебираем ячейке таблицы, где есть запись
-                        if lesson in dic_lesson:  # Если в общем расписании урок свободен, можем записать
+                        student = self.table.item(row, column).text().strip()
+                        if lesson in dic_lesson:
                             # Если в общем расписании на этом уроке есть занятия
-                            sql = "SELECT timetable.lesson, user.login FROM timetable,student,user WHERE user.id=timetable.teacher_id AND student.id=timetable.student_id AND student.surname='" + self.table.item(
-                                row, column).text().strip() + "'"
+                            sql = "SELECT timetable.lesson, user.login FROM timetable,student,user WHERE user.id=timetable.teacher_id AND student.id=timetable.student_id AND student.surname='" + student + "'"
                             student_lessons = dict(cur.execute(sql).fetchall())
-                            print(student, lesson, self.userName, student_lessons)
-                            if lesson in student_lessons:  # Проверяем уроки студента уже существующие в общем расписании
-                                record = False
+                            # Проверяем уроки студента уже существующие в общем расписании
+                            if lesson in student_lessons:
+                                record = False  # не пишем этот урок в БД
                                 if student_lessons[lesson] != self.userName:
                                     # у ученика не может быть несколько уроков одновременно у разных учителей
+                                    record_ok = False  # не обновляем БД
                                     save_error = QMessageBox.information(self, 'Ошибка сохранения',
                                                                          "У {} уже занят {} {}й урок.".format(
-                                                                             self.table.item(row, column).text(),
+                                                                             student,
                                                                              self.weeks_day[column], str(row + 1)))
                                     self.table.setItem(row, column, QTableWidgetItem(''))
-                                    record_ok = False
-                                    break
-                            else:  # Проверяем, что не произошло изменений в существующих записях
-                                for lesson_in_tt in filter(lambda x: x[0] == self.userName, dic_lesson[lesson]):
-                                    if lesson_in_tt[1] != self.table.item(row, column).text().strip():
-                                        add_student_error = QMessageBox.information(self, 'Ошибка сохранения',
-                                                                                    "Перенос занятий {} должен быть согласован администратором".format(
-                                                                                        lesson_in_tt[1]))
-                                        self.fill_table()
-                                        record = False
-                                        record_ok = False
-                                        break
+                                    break  # ошибка - дальше проверять нет смысла
+
+                            # Если это замена ученика на уроке
+                            sql = f'SELECT student.surname FROM timetable,student,user WHERE ' \
+                                  f'user.id=timetable.teacher_id AND student.id=timetable.student_id AND' \
+                                  f' timetable.lesson="{lesson}" AND user.login="{teacher}"'
+
+                            print(sql)
+                            student_in_bd = [i[0] for i in cur.execute(sql).fetchall()]
+                            print(student, teacher, student_in_bd)
+                            if student not in student_in_bd:
+                                record_ok = False
+                                record = False
+                                QMessageBox.information(self, 'Ошибка сохранения',
+                                                        "Изменение расписания должно быть согласовано с координатором")
+                                break
+
                         if record:
                             record_ok = True
-                            student = self.table.item(row, column).text().strip()
                             sql = "SELECT id from student WHERE surname='{}'".format(student)
                             sid = cur.execute(sql).fetchone()
                             if sid:
@@ -168,9 +176,12 @@ class Table(QWidget):
                                 cur.execute(sql, (sid, student))
                             sql = '''INSERT INTO timetable(teacher_id, lesson,student_id) VALUES (?, ?,?)'''  # по id записываем уроки в расписание
                             cur.execute(sql, (tid, lesson, sid))
+                    else:
+                        if lesson in dic_lesson:
+                            cur.execute(f'DELETE FROM timetable WHERE lesson="{lesson}"')
+                            record_ok = True
                 if not record_ok:
                     break
-            print(record_ok)
             if record_ok:
                 con.commit()
                 clear_error = QMessageBox.information(self, "ОК", "Расписание обновлено.")
@@ -285,7 +296,6 @@ class Table(QWidget):
                     timetable.teacher_id=user.id AND user.login="{}"'''.format(
                 self.userName)  # Выбираем все существующие уроки данного учителя в расписании
         result = cur.execute(sql).fetchall()
-        print(result)
         for item in result:
             row, column = map(int, item[0].split())
             if self.userRight == 'admin' or self.userRight is None:
@@ -297,7 +307,7 @@ class Table(QWidget):
                                         timetable.teacher_id=user.id AND student.id=timetable.student_id AND timetable.lesson="{}" AND user.login="{}"'''.format(
                     str(item[0]), self.userName)
                 day = cur.execute(sql).fetchone()[0]
-            self.table.setItem(row, column, QTableWidgetItem(day))
+            self.table.setItem(row, column, QTableWidgetItem(str(day)))
         con.close()
 
     def back(self):
