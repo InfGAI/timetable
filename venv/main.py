@@ -85,7 +85,7 @@ class Window(QMainWindow):
             self.wnd.show()
         else:
             login_error = QMessageBox.information(self, 'Ошибка авторизации',
-                                                  "Для внесения изменений авторизуйтесь, пожалуйста.")
+                                                  "Для внесения изменений авторизуйтесь под администратором, пожалуйста.")
             if login_error == QMessageBox.Ok:
                 self.menu_login()
 

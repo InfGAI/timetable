@@ -34,12 +34,12 @@ class Reg_window(QDialog):
                 palette = item.palette()
                 palette.setColor(QtGui.QPalette.Text, color)
                 item.setPalette(palette)
-
         return result
 
     def accept(self):
         if not self.check_fill_lines(self.group_lines):
             super().accept()
+
 
     def on_click(self):
         if self.check_right_lines(self.group_lines):
@@ -61,8 +61,8 @@ class Reg_window(QDialog):
             self.ok = True
             self.par.userName = self.luser.text()
             QMessageBox.about(self, "ОK", "Регистрация успешна")
-            self.child_wnd = Table(self.luser.text(), self)
-            self.child_wnd.show()
-            super().accept()
+            self.par.userRight = self.userRight
+            self.par.userName = self.luser.text()
+            self.hide()
         else:
             msg = QMessageBox.about(self, "Error", "Заполните поля")
