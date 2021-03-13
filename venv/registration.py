@@ -22,6 +22,7 @@ class Reg_window(QDialog):
     def check_fill_lines(self, group):
         return all(group)
 
+
     def check_right_lines(selfself, group):
         result = True
         for item in group:
@@ -45,24 +46,30 @@ class Reg_window(QDialog):
         if self.check_right_lines(self.group_lines):
             con = sqlite3.connect('db1.db')
             cur = con.cursor()
-            if self.r_admin.isChecked():
-                admin = 1
-                self.userRight = 'admin'
+            sql = f'SELECT * FROM user WHERE login="{self.luser.text()}"'
+            uid = cur.execute(sql).fetchall()
+            print(sql, uid)
+            if uid:
+                QMessageBox.about(self, "Error", "Пользователь с таким именем уже существует")
             else:
-                admin = 0
-                self.userRight = 'teacher'
-            sql = '''INSERT INTO user(login,password,surname,name) VALUES (?, ?,?,?)'''
-            cur.execute(sql, (self.luser.text(), self.lpassword.text(), self.lsurname.text(), self.lname.text()))
-            sql = 'SELECT MAX(id) FROM user'
-            uid = cur.execute(sql).fetchall()[0][0]
-            sql = '''INSERT INTO rights VALUES (?, ?)'''
-            cur.execute(sql, (admin, uid))
-            con.commit()
-            self.ok = True
-            self.par.userName = self.luser.text()
-            QMessageBox.about(self, "ОK", "Регистрация успешна")
-            self.par.userRight = self.userRight
-            self.par.userName = self.luser.text()
-            self.hide()
+
+                if self.r_admin.isChecked():
+                    admin = 1
+                    self.userRight = 'admin'
+                else:
+                    admin = 0
+                    self.userRight = 'teacher'
+                sql = '''INSERT INTO user(login,password,surname,name) VALUES (?, ?,?,?)'''
+                cur.execute(sql, (self.luser.text(), self.lpassword.text(), self.lsurname.text(), self.lname.text()))
+                sql = 'SELECT MAX(id) FROM user'
+                uid = cur.execute(sql).fetchall()[0][0]
+                sql = '''INSERT INTO rights VALUES (?, ?)'''
+                cur.execute(sql, (admin, uid))
+                con.commit()
+                self.ok = True
+                QMessageBox.about(self, "ОK", "Регистрация успешна")
+                self.par.userRight = self.userRight
+                self.par.userName = self.luser.text()
+                self.hide()
         else:
             msg = QMessageBox.about(self, "Error", "Заполните поля")
