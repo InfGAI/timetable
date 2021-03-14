@@ -1,6 +1,7 @@
 """Основной файл приложения"""
 import os
 import sys
+import sqlite3
 
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication, QMessageBox, QMainWindow
@@ -23,6 +24,41 @@ class Window(QMainWindow):
 
     def __init__(self):
         super(Window, self).__init__()
+        try:
+            file = open('timetable.db')
+        except IOError as e:
+            con = sqlite3.connect('timetable.db')
+            cur = con.cursor()
+            cur.execute("""CREATE TABLE IF NOT EXISTS 
+               user(
+               id INTEGER PRIMARY KEY AUTOINCREMENT,
+               login STRING,
+               password STRING,
+               surname STRING,
+               name STRING);
+            """)
+            con.commit()
+            cur.execute("""CREATE TABLE IF NOT EXISTS 
+               rights(
+               id INTEGER,
+               admin BOOLEAN,
+               FOREIGN KEY (id) references user(id));
+            """)
+            cur.execute("""CREATE TABLE IF NOT EXISTS 
+               student(
+               id INTEGER PRIMARY KEY AUTOINCREMENT,
+               surname STRING);
+            """)
+            con.commit()
+            cur.execute("""CREATE TABLE IF NOT EXISTS 
+               timetable(
+               teacher_id INTEGER,
+               lesson STRING,
+               student_id STRING,
+               FOREIGN KEY (teacher_id) references user(id)
+               FOREIGN KEY (student_id) references student(id));
+            """)
+            con.commit()
         path = resource_path('image.png')
         uic.loadUi("main.ui", self)
         user_size(self)
@@ -32,11 +68,13 @@ class Window(QMainWindow):
         # Меню
         self.mlogin.setStatusTip('Войти')
         self.mlogin.triggered.connect(self.menu_login)
-        self.readme.triggered.connect(lambda: os.startfile(r'Readme.txt'))
+        self.readme.triggered.connect(lambda: os.startfile(r'Readme.md'))
         self.autor.aboutToShow.connect(self.set_menu)  # Добавляем в меню Выход, если залогинен пользователь.
         self.autor.triggered.connect(self.exit_menu)
         self.reg.setStatusTip('Зарегистрироваться')
         # Кнопки
+        if self.userRight == 'teacher':
+            self.reg.hide()
         self.reg.triggered.connect(self.menu_reg)
         self.bview.clicked.connect(self.view)
         self.bset.clicked.connect(self.set)

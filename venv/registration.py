@@ -44,15 +44,15 @@ class Reg_window(QDialog):
 
     def on_click(self):
         if self.check_right_lines(self.group_lines):
-            con = sqlite3.connect('db1.db')
+            con = sqlite3.connect('timetable.db')
             cur = con.cursor()
             sql = f'SELECT * FROM user WHERE login="{self.luser.text()}"'
             uid = cur.execute(sql).fetchall()
-            print(sql, uid)
             if uid:
                 QMessageBox.about(self, "Error", "Пользователь с таким именем уже существует")
+            elif self.lpassword.text() != self.lrepeat.text():
+                QMessageBox.about(self, "Error", "Пароли различаются")
             else:
-
                 if self.r_admin.isChecked():
                     admin = 1
                     self.userRight = 'admin'
@@ -62,9 +62,12 @@ class Reg_window(QDialog):
                 sql = '''INSERT INTO user(login,password,surname,name) VALUES (?, ?,?,?)'''
                 cur.execute(sql, (self.luser.text(), self.lpassword.text(), self.lsurname.text(), self.lname.text()))
                 sql = 'SELECT MAX(id) FROM user'
-                uid = cur.execute(sql).fetchall()[0][0]
+                try:
+                    uid = cur.execute(sql).fetchone()[0]
+                except ValueError as e:
+                    uid = 1
                 sql = '''INSERT INTO rights VALUES (?, ?)'''
-                cur.execute(sql, (admin, uid))
+                cur.execute(sql, (uid, admin))
                 con.commit()
                 self.ok = True
                 QMessageBox.about(self, "ОK", "Регистрация успешна")

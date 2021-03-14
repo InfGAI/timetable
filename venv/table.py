@@ -42,7 +42,7 @@ class Table(QWidget):
         user_size(self)
         center(self)
         self.userName = Uname
-        con = sqlite3.connect('db1.db')
+        con = sqlite3.connect('timetable.db')
         cur = con.cursor()
         self.userRight = self.par.userRight
         self.lbl_user.setText(Uname)
@@ -100,7 +100,7 @@ class Table(QWidget):
 
     def save_changes(self):
         """Сохраняет таблицу, если при сохранении выявляются дубли учеников/препоадвателей, появлется диалоговое окно"""
-        con = sqlite3.connect('db1.db')
+        con = sqlite3.connect('timetable.db')
         cur = con.cursor()
         sql = '''SELECT timetable.lesson,user.login,student.surname FROM timetable,user,student WHERE 
                                                 timetable.teacher_id=user.id AND student.id=timetable.student_id'''
@@ -152,11 +152,10 @@ class Table(QWidget):
                             sql = f'SELECT student.surname FROM timetable,student,user WHERE ' \
                                   f'user.id=timetable.teacher_id AND student.id=timetable.student_id AND' \
                                   f' timetable.lesson="{lesson}" AND user.login="{teacher}"'
-
                             print(sql)
                             student_in_bd = [i[0] for i in cur.execute(sql).fetchall()]
-                            print(student, teacher, student_in_bd)
-                            if student not in student_in_bd:
+                            print(sql)
+                            if student_in_bd and student not in student_in_bd:
                                 record_ok = False
                                 record = False
                                 QMessageBox.information(self, 'Ошибка сохранения',
@@ -171,14 +170,17 @@ class Table(QWidget):
                                 sid = sid[0]
                             else:
                                 sql = 'SELECT MAX(id) FROM student'
-                                sid = cur.execute(sql).fetchone()[0] + 1
+                                try:
+                                    sid = cur.execute(sql).fetchone()[0] + 1
+                                except ValueError as e:
+                                    sid = 1
                                 sql = '''INSERT INTO student(id,surname) VALUES (?, ?)'''  # по id записываем уроки в расписание
                                 cur.execute(sql, (sid, student))
                             sql = '''INSERT INTO timetable(teacher_id, lesson,student_id) VALUES (?, ?,?)'''  # по id записываем уроки в расписание
                             cur.execute(sql, (tid, lesson, sid))
                     else:
                         if lesson in dic_lesson:
-                            cur.execute(f'DELETE FROM timetable WHERE lesson="{lesson}"')
+                            cur.execute(f'DELETE FROM timetable WHERE lesson="{lesson}" and teacher_id="{tid}"')
                             record_ok = True
                 if not record_ok:
                     break
@@ -193,6 +195,8 @@ class Table(QWidget):
             sid = 1
             cur.execute('DELETE FROM timetable')
             value_error = None
+            all_student = set()
+            all_teachers = set()
             for row in range(self.table.rowCount()):
                 for column in range(self.table.columnCount()):
                     lesson = str(row) + ' ' + str(column)
@@ -207,29 +211,33 @@ class Table(QWidget):
                                                                                   "Фамилия_преподавателя "
                                                                                   "Фамилия_ученика через пробел.")
                                 break
-                            if student not in dic_sid:
-                                sql = 'SELECT MAX(id) FROM student'
-                                sid = cur.execute(sql).fetchall()[0][0] + 1
-                                sql = '''INSERT INTO student(id,surname) VALUES (?, ?)'''
-                                cur.execute(sql, (sid, student))
+                            sql = f'''SELECT id FROM student WHERE surname = "{student}"'''
+                            result = cur.execute(sql).fetchone()
+                            if not result:
+                                sql = f'''INSERT INTO student(surname) VALUES ("{student}")'''
+                                cur.execute(sql)
+                                con.commit()
+                                sql = f'''SELECT MAX(id) FROM student'''
+                                result = cur.execute(sql).fetchone()
+                            sid = result[0]
+                            sql = f'''SELECT id FROM user WHERE surname = "{teacher}"'''
+                            result = cur.execute(sql).fetchone()
+                            if not result:
+                                sql = '''INSERT INTO user(login,password,surname) VALUES (?,?,?)'''
+                                cur.execute(sql, (teacher, 123, teacher))
+                                con.commit()
+                                sql = f'''SELECT MAX(id) FROM user'''
+                                tid = cur.execute(sql).fetchone()[0]
+                                sql = '''INSERT INTO rights(id,admin) VALUES (?,?)'''
+                                cur.execute(sql, (tid, "0"))
+                                con.commit()
                             else:
-                                sid = dic_sid[student]
-                            if teacher not in dic_tid:
-                                sql = 'SELECT MAX(id) FROM user'
-                                tid = cur.execute(sql).fetchall()[0][0] + 1
-                                sql = '''INSERT INTO user(login,password,id,surname) VALUES (?,?,?, ?)'''
-                                cur.execute(sql, (teacher, 123, tid, teacher))
-                                sql = '''INSERT INTO rights(admin,id) VALUES (?,?)'''
-                                cur.execute(sql, (0, tid))
-                            else:
-                                tid = dic_tid[teacher]
+                                tid = result[0]
 
                             sql = '''INSERT INTO timetable(teacher_id, lesson,student_id) VALUES (?, ?,?)'''  # по id записываем уроки в расписание
                             cur.execute(sql, (tid, lesson, sid))
 
-                    if value_error is not None:
-                        break
-            con.commit()
+                    con.commit()
             if value_error is None:
                 clear_error = QMessageBox.information(self, "ОК", "Расписание обновлено.")
         else:
@@ -241,7 +249,6 @@ class Table(QWidget):
     def import_table(self):
         """Сохранение текущего вида расписания в файл timetable.csv"""
         fname = QFileDialog.getOpenFileName(self, 'Open file')
-
         if fname[0][-3:]:
             if fname[0][-3:] != 'csv':
                 clear_error = QMessageBox.information(self, "Ошибка", "Расписание должно быть в формате .csv")
@@ -287,7 +294,7 @@ class Table(QWidget):
 
     def fill_table(self):
         """Заполнение таблицы из бд"""
-        con = sqlite3.connect('db1.db')
+        con = sqlite3.connect('timetable.db')
         cur = con.cursor()
         if self.userRight == 'admin' or self.userRight is None:
             sql = '''SELECT DISTINCT timetable.lesson FROM timetable'''  # Выбираем все существующие уроки в расписании
