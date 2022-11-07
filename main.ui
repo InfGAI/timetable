@@ -1,0 +1,129 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>465</width>
+    <height>285</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Расписание 1.0</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QGridLayout" name="gridLayout">
+    <item row="1" column="1">
+     <widget class="QPushButton" name="bset">
+      <property name="styleSheet">
+       <string notr="true">font: 75 20pt &quot;Verdana&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Задание расписания</string>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="0">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="0" column="1">
+     <widget class="QPushButton" name="bview">
+      <property name="styleSheet">
+       <string notr="true">font: 75 20pt &quot;Verdana&quot;;</string>
+      </property>
+      <property name="text">
+       <string>Просмотр расписания</string>
+      </property>
+      <property name="default">
+       <bool>true</bool>
+      </property>
+     </widget>
+    </item>
+    <item row="0" column="2">
+     <spacer name="horizontalSpacer_2">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menubar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>465</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="autor">
+    <property name="title">
+     <string>Авторизация</string>
+    </property>
+    <addaction name="mlogin"/>
+    <addaction name="reg"/>
+    <addaction name="mexit"/>
+   </widget>
+   <widget class="QMenu" name="help">
+    <property name="title">
+     <string>Помощь</string>
+    </property>
+       <addaction name="readme"/>
+   </widget>
+   <addaction name="autor"/>
+   <addaction name="help"/>
+  </widget>
+  <widget class="QStatusBar" name="statusbar"/>
+  <action name="mlogin">
+   <property name="text">
+    <string>Вход</string>
+   </property>
+  </action>
+     <action name="reg">
+         <property name="text">
+             <string>Регистрация</string>
+         </property>
+     </action>
+     <action name="mexit">
+         <property name="text">
+             <string>Выход</string>
+         </property>
+     </action>
+     <action name="error">
+         <property name="text">
+             <string>Файл Readme отсутствует</string>
+         </property>
+     </action>
+     <action name="error_2">
+         <property name="text">
+             <string>Файл Readme не найден</string>
+         </property>
+     </action>
+     <action name="readme">
+         <property name="text">
+             <string>О программе</string>
+         </property>
+     </action>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

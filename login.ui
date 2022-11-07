@@ -11,9 +11,9 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Dialog</string>
+   <string>Авторизация</string>
   </property>
-  <widget class="QDialogButtonBox" name="login">
+  <widget class="QDialogButtonBox" name="login_button">
    <property name="geometry">
     <rect>
      <x>0</x>
@@ -52,7 +52,7 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEdit_3">
+     <widget class="QLineEdit" name="lpassword">
       <property name="echoMode">
        <enum>QLineEdit::Password</enum>
       </property>
@@ -83,15 +83,19 @@
      </widget>
     </item>
     <item>
-     <widget class="QLineEdit" name="lineEdit"/>
+     <widget class="QLineEdit" name="luser"/>
     </item>
    </layout>
   </widget>
  </widget>
+ <tabstops>
+  <tabstop>luser</tabstop>
+  <tabstop>lpassword</tabstop>
+ </tabstops>
  <resources/>
  <connections>
   <connection>
-   <sender>login</sender>
+   <sender>login_button</sender>
    <signal>accepted()</signal>
    <receiver>Dialog</receiver>
    <slot>accept()</slot>
@@ -107,7 +111,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>login</sender>
+   <sender>login_button</sender>
    <signal>rejected()</signal>
    <receiver>Dialog</receiver>
    <slot>reject()</slot>
